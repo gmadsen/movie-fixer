@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{% block title %} {{ movie['name'] }} {% endblock %}</h2>
+    <span class="badge badge-primary">{{ movie['year'] }}</span>
+{% endblock %}
