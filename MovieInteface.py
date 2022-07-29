@@ -3,20 +3,20 @@ from json import JSONDecoder
 from io import StringIO
 
 class Movie:
-    def __init__(self, name, year, imdb_id=None, imdb_response=None):
-        self.name = name
+    def __init__(self, title, year, imdb_id=None, imdb_response=None):
+        self.title = title 
         self.year = year
         self.imdb_id = imdb_id 
         self.imdb_response = imdb_response 
         
     def __str__(self):
         if self.imdb_response is None:
-            return "Movie: {} ({})".format(self.name, self.year)
+            return "Movie: {} ({})".format(self.title, self.year)
         else:
-            return "Movie: {} ({}) \n\t Searches: {}".format(self.name, self.year, self.imdb_response)
+            return "Movie: {} ({}) \n\t Searches: {}".format(self.title, self.year, self.imdb_response)
 
     def __repr__(self):
-        return f"{self.name} ({self.year})"
+        return f"{self.title} ({self.year})"
 
 class ImdbValidSearchResult:
     def __init__(self, result):

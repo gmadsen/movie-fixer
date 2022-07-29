@@ -4,7 +4,7 @@
     <h1>{% block title %} Welcome to GareFixer {% endblock %}</h1>
     {% for movie in movies %}
         <a href="{{ url_for('movie', movie_id=movie['id']) }}">
-            <h2>{{ movie.name }}</h2>
+            <h2>{{ movie.title }} ({{ movie.year }}) </h2>
         </a>
         <hr>
         {% endfor %}

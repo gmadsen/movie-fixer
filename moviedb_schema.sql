@@ -1,11 +1,13 @@
+        DROP TABLE IF EXISTS Movies;
         CREATE TABLE IF NOT EXISTS Movies (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
+            title TEXT NOT NULL,
             year INTEGER,
             imdb_id TEXT,
-            UNIQUE(name, year)
+            UNIQUE(title, year)
         );
 
+        DROP TABLE IF EXISTS Responses;
         CREATE TABLE IF NOT EXISTS Responses (
             id INTEGER PRIMARY KEY,
             from_movies_id INTEGER NOT NULL,
@@ -15,10 +17,11 @@
             FOREIGN KEY (from_movies_id) REFERENCES Movies(id)
         );
 
+        DROP TABLE IF EXISTS Searches;
         CREATE TABLE IF NOT EXISTS Searches (
             id INTEGER PRIMARY KEY,
             from_responses_id INTEGER NOT NULL,  
-            name TEXT,
+            title TEXT,
             year INTEGER,
             imdb_id TEXT,
             type TEXT,

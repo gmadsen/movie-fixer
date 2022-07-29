@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{% block title %} Statistics {% endblock %}</h2>
+    <h2>Total # of Movies in Collection: {{ stats.total_movies }}</h2>
+    <h2>Total # of Movies Missing IMDB ID: {{ stats.total_movies_missing_imdb_id }}</h2>
+    <h2>Total # of Movies W/O ID W/ Valid Resp (IE: fixable): {{ stats.total_reviewable_movies }}</h2>
+
+    <h2>Total # of Responses in Collection: {{ stats.total_responses }}</h2>
+    <h2>Total # of Searches in Collection: {{ stats.total_searches }}</h2>
+{% endblock %}

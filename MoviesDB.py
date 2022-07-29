@@ -1,20 +1,28 @@
 import sqlite3
 
+class Stats:
+    def __init__(self):
+        self.total_movies = 0 
+        self.total_movies_missing_imdb_id = 0
+        self.total_reviewable_movies = 0 
+        self.total_responses = 0
+        self.total_searches = 0
+
 class MoviesDB:
-    def __init__(self, db='data/movies.db'):
+    def __init__(self, db='data/movies.db', build_tables=False):
         self.conn = None
         try:
             self.conn = sqlite3.connect(db)
-            self.conn.row_factory = sqlite3.Row
 
         except Exception as e:
             print(e)
             self.conn.close()
             self.conn = None
 
-        if self.conn is not None:
+        if self.conn is not None and build_tables:
             self.createProjectTables()
 
+    
     def __del__(self):
         if self.conn is not None:
             self.conn.close()
@@ -23,53 +31,35 @@ class MoviesDB:
     def createProjectTables(self):
         if self.conn is None:
             return
-        cur = self.conn.cursor()
-        cur.execute("""CREATE TABLE IF NOT EXISTS Movies (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            year INTEGER,
-            imdb_id TEXT,
-            UNIQUE(name, year));
-        """)
-        cur.execute("""CREATE TABLE IF NOT EXISTS Responses (
-            id INTEGER PRIMARY KEY,
-            from_movies_id INTEGER NOT NULL,
-            valid INTEGER NOT NULL,
-            error TEXT,
-            total_results INTEGER,
-            FOREIGN KEY (from_movies_id) REFERENCES Movies(id));
-        """)
-        cur.execute(
-            """CREATE TABLE IF NOT EXISTS Searches (
-                id INTEGER PRIMARY KEY,
-                from_responses_id INTEGER NOT NULL,  
-                name TEXT,
-                year INTEGER,
-                imdb_id TEXT,
-                type TEXT,
-                poster TEXT,
-                FOREIGN KEY (from_responses_id) REFERENCES Responses(id));
-            """)
+
+        with open('moviedb_schema.sql') as f:
+            self.conn.executescript(f.read()) 
+
         self.conn.commit()
 
+    def getMovie(self, movie_id):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute("""SELECT * FROM Movies WHERE id=?""", (movie_id,))
+        movie = cur.fetchone()
+        return movie
+    
     def add_movie(self, movie):
         if self.conn is None:
             return
         cur = self.conn.cursor()
         try:
 
-            cur.execute("""INSERT INTO Movies (name, year, imdb_id) VALUES (?, ?, ?)""", (movie.name, movie.year, movie.imdb_id))
+            cur.execute("""INSERT INTO Movies (title, year, imdb_id) VALUES (?, ?, ?)""", (movie.title, movie.year, movie.imdb_id))
             from_movie_id = cur.lastrowid
 
-            #cur.execute("""SELECT id FROM Movies WHERE name = ? AND year = ?""", (movie.name, movie.year))
-            #from_movie_id = cur.fetchone()[0]
             cur.execute("""INSERT INTO Responses (from_movies_id, valid, error, total_results) VALUES (?, ?, ?, ?)""", (from_movie_id, movie.imdb_response.valid, movie.imdb_response.error, movie.imdb_response.total_results))
             from_response_id = cur.lastrowid
 
-            #cur.execute("""SELECT id FROM Responses WHERE from_movies_id = ?""", (from_movie_id,))
-            #response_id = cur.fetchone()[0]
             for search in movie.imdb_response.results:
-                cur.execute("""INSERT INTO Searches (from_responses_id, name, year, imdb_id, type, poster) VALUES (?, ?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.type, search.poster))
+                cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, type, poster) VALUES (?, ?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.type, search.poster))
 
             self.conn.commit()
 
@@ -77,9 +67,91 @@ class MoviesDB:
             print(e)
             self.conn.rollback()
 
-    def getMoviesWithNoImdbId(self):
+    def update_movie(self, movie_id, movie):
         if self.conn is None:
             return
         cur = self.conn.cursor()
+        try:
+            cur.execute("""UPDATE Movies SET title = ?, year = ?, imdb_id = ? WHERE id = ?""", (movie.title, movie.year, movie.imdb_id, movie_id))
+            cur.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
+            cur.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,)) 
+            self.conn.commit()
+
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
+            
+
+    def getMovies(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute("""SELECT * FROM Movies""")
+        return cur.fetchall()
+
+    def getMoviesWithNoImdbId(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
         cur.execute("""SELECT * FROM Movies WHERE imdb_id=''""")
         return cur.fetchall()
+
+    def getMoviesWithValidSearches(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute("""
+                    SELECT Movies.id, Movies.title, Movies.year, Movies.imdb_id 
+                    FROM Movies
+                    INNER JOIN Responses ON Movies.id = Responses.from_movies_id
+                    WHERE Responses.valid = 1
+                    """)
+        return cur.fetchall()
+
+        
+    def getSearchesByMovieId(self, movie_id):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute("""SELECT * FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
+        return cur.fetchall()
+
+        
+    def getStats(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+
+        stats = Stats()
+        cur = self.conn.cursor()
+
+        cur.execute("""SELECT COUNT(*) FROM Movies""")
+        stats.total_movies    = cur.fetchone()[0]
+        
+        cur.execute("""SELECT COUNT(*) FROM Movies WHERE imdb_id=''""")
+        stats.total_movies_missing_imdb_id = cur.fetchone()[0]
+ 
+        cur.execute("""SELECT COUNT(*) FROM Responses""")
+        stats.total_responses = cur.fetchone()[0]
+        
+        cur.execute("""SELECT COUNT(*) FROM Searches""")
+        stats.total_searches = cur.fetchone()[0]
+
+        cur.execute("""
+                SELECT COUNT(*) FROM Movies
+                INNER JOIN Responses ON Movies.id = Responses.from_movies_id
+                WHERE Responses.valid = 1
+                """)
+        stats.total_reviewable_movies = cur.fetchone()[0]
+
+        return stats
+    
+
+    def close(self):
+        if self.conn is not None:
+            self.conn.close()
+            self.conn = None
