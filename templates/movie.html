@@ -2,7 +2,5 @@
 
 {% block content %}
     <h2>{% block title %} {{ movie.title }} ({{ movie.year }}) {% endblock %}</h2>
-    <h3>Release Year: {{movie.year}}</h3>
-    <h3>IMDB ID: {{movie.imdb_id}}</h3>
-    <span class="badge badge-primary">{{ movie['imdb_id'] }}</span>
+    <span class="badge badge-primary">{{ movie.imdb_id }}</span>
 {% endblock %}

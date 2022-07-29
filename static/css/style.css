@@ -4,3 +4,23 @@ h1 {
     text-align: center;
     padding: 10px;
 }
+
+
+.box div {
+    box-sizing: border-box;
+    display: inline-block;
+    padding: 15px 0;
+    text-align: center;
+    color: #000000;
+    font-family: arial, sans-serif;
+}
+
+.stat_col_1 {
+    width: 49%;
+    background-color: pink; 
+}
+
+.stat_col_2 {
+    width: 49%;
+    background-color: #a0e9ed; 
+}

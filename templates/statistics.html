@@ -1,11 +1,33 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{% block title %} Statistics {% endblock %}</h2>
-    <h2>Total # of Movies in Collection: {{ stats.total_movies }}</h2>
-    <h2>Total # of Movies Missing IMDB ID: {{ stats.total_movies_missing_imdb_id }}</h2>
-    <h2>Total # of Movies W/O ID W/ Valid Resp (IE: fixable): {{ stats.total_reviewable_movies }}</h2>
+    <h1>{% block title %} Statistics {% endblock %}</h1>
 
-    <h2>Total # of Responses in Collection: {{ stats.total_responses }}</h2>
-    <h2>Total # of Searches in Collection: {{ stats.total_searches }}</h2>
+    <div class="box">
+        <div class=stat_col_1>Total # of Movies in Collection:</div>
+        <div class=stat_col_2>{{ stats.total_movies }}</div>
+    </div>
+    <div class="box">
+        <div class=stat_col_1>Total # of Movies Missing IMDB ID:</div>
+        <div class=stat_col_2>{{ stats.total_movies_missing_imdb_id }}</div>
+    </div>
+    <div class="box">
+        <div class=stat_col_1>Total # of Movies to Review:</div>
+        <div class=stat_col_2>{{ stats.total_reviewable_movies }}</div>
+    </div>
+    <div class="box">
+        <div class=stat_col_1>Total # of Responses in Collection:</div>
+        <div class=stat_col_2>{{ stats.total_responses }}</div>
+    </div>
+    <div class="box">
+        <div class=stat_col_1>Total # of Searches in Collection:</div>
+        <div class=stat_col_2>{{ stats.total_searches }}</div>
+    </div>
+
+    <!-- <h2>Total # of Movies in Collection:</h2> <div>{{ stats.total_movies }}</div>
+    <h2>Total # of Movies Missing IMDB ID: <h3>{{ stats.total_movies_missing_imdb_id }}</h3></h2>
+    <h2>Total # of Movies to Review: <h3>{{ stats.total_reviewable_movies }}</h3></h2>
+
+    <h2>Total # of Responses in Collection: <h3>{{ stats.total_responses }}</h3></h2>
+    <h2>Total # of Searches in Collection: <h3>{{ stats.total_searches }}</h3></h2> -->
 {% endblock %}

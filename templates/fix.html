@@ -37,7 +37,8 @@
 <hr>
 {% for search in searches %}
             <h2>{{ search.title }} ({{ search.year }}) </h2>
-            <h2>IMDB ID: {{ search.imdb_id}} </h2>
+            <span class="badge badge-primary">{{ search.year }}</span>
+            <span class="badge badge-primary">{{ search.imdb_id }}</span>
             <img src={{search.poster}} alt="No Poster available" width="104" height="142">
         </a>
         <hr>

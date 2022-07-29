@@ -27,26 +27,24 @@ class MoviesDB:
         if self.conn is not None:
             self.conn.close()
 
-
     def createProjectTables(self):
         if self.conn is None:
             return
-
         with open('moviedb_schema.sql') as f:
             self.conn.executescript(f.read()) 
-
         self.conn.commit()
 
-    def getMovie(self, movie_id):
+    def addMovies(self, movies):
         if self.conn is None:
             return
-        self.conn.row_factory = sqlite3.Row
-        cur = self.conn.cursor()
-        cur.execute("""SELECT * FROM Movies WHERE id=?""", (movie_id,))
-        movie = cur.fetchone()
-        return movie
-    
-    def add_movie(self, movie):
+        for movie in movies:
+            self.addMovie(movie)
+
+    def addMovie(self, movie):
+        """
+        movie is a Movie object from MovieInterface.py
+
+        """
         if self.conn is None:
             return
         cur = self.conn.cursor()
@@ -60,14 +58,14 @@ class MoviesDB:
 
             for search in movie.imdb_response.results:
                 cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, type, poster) VALUES (?, ?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.type, search.poster))
-
             self.conn.commit()
 
         except Exception as e:
             print(e)
             self.conn.rollback()
+   
 
-    def update_movie(self, movie_id, movie):
+    def updateMovie(self, movie_id, movie):
         if self.conn is None:
             return
         cur = self.conn.cursor()
@@ -82,7 +80,16 @@ class MoviesDB:
             self.conn.rollback()
             
 
-    def getMovies(self):
+    def getMovie(self, movie_id):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute("""SELECT * FROM Movies WHERE id=?""", (movie_id,))
+        movie = cur.fetchone()
+        return movie
+
+    def getAllMovies(self):
         if self.conn is None:
             return
         self.conn.row_factory = sqlite3.Row
@@ -125,7 +132,6 @@ class MoviesDB:
         if self.conn is None:
             return
         self.conn.row_factory = sqlite3.Row
-
         stats = Stats()
         cur = self.conn.cursor()
 
@@ -147,7 +153,6 @@ class MoviesDB:
                 WHERE Responses.valid = 1
                 """)
         stats.total_reviewable_movies = cur.fetchone()[0]
-
         return stats
     
 
@@ -155,3 +160,13 @@ class MoviesDB:
         if self.conn is not None:
             self.conn.close()
             self.conn = None
+
+    def cleanReset(self):
+        if self.conn is None:
+            return
+        try:
+            self.build_tables()
+            self.conn.commit()
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
