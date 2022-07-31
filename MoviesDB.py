@@ -74,14 +74,17 @@ class MoviesDB:
             cur.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
             cur.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,)) 
             self.conn.commit()
+            return True
 
         except Exception as e:
             print(e)
             self.conn.rollback()
+            return False
             
 
     def getMovie(self, movie_id):
         if self.conn is None:
+            print("DB is not connected")
             return
         self.conn.row_factory = sqlite3.Row
         cur = self.conn.cursor()

@@ -10,51 +10,22 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mysecretkey'
 
 
-def get_movie(movie_id):
-    db = mdb.MoviesDB()
-    movie = db.getMovie(movie_id) 
-    db.close()
-    if movie is None:
-        abort(404)
-    return movie 
+def safe(func):
+    def db_call(*args, **kwargs):
+        db = mdb.MoviesDB()
+        thing = func(db, *args, **kwargs)
+        db.close()
+        if thing is None:
+            abort(404)
+        return thing
+    return db_call 
 
-def get_all_movies():
-    db = mdb.MoviesDB()
-    movies = db.getAllMovies() 
-    db.close()
-    if movies is None:
-        abort(404)
-    return movies
-
-def get_searches_by_movie_id(movie_id):
-    db = mdb.MoviesDB()
-    searches = db.getSearchesByMovieId(movie_id) 
-    db.close()
-    if searches is None:
-        abort(404)
-    return searches 
-
-def get_movies_with_valid_searches():
-    db = mdb.MoviesDB()
-    movies = db.getMoviesWithValidSearches() 
-    db.close()
-    if movies is None:
-        abort(404)
-    return movies
-
-def get_stats():
-    db = mdb.MoviesDB()
-    stats = db.getStats() 
-    db.close()
-    if stats is None:
-        abort(404)
-    return stats
-
-def update_movie(movie_id, movie):
-    db = mdb.MoviesDB()
-    db.updateMovie(movie_id, movie)
-    db.close()
-    return 
+get_movie = safe(mdb.MoviesDB.getMovie)
+get_all_movies = safe(mdb.MoviesDB.getAllMovies)
+get_searches_by_movie_id = safe(mdb.MoviesDB.getSearchesByMovieId)
+get_movies_with_valid_searches = safe(mdb.MoviesDB.getMoviesWithValidSearches)
+get_stats = safe(mdb.MoviesDB.getStats)
+update_movie = safe(mdb.MoviesDB.updateMovie)
 
 
 ## Routes ##
@@ -77,14 +48,11 @@ def stats():
 @app.route('/fix/<int:movie_id>', methods=['GET', 'POST'])
 def fix(movie_id):
     if request.method == 'POST':
-        print(request.form)
-        new_title = request.form['title']
-        new_year = request.form['year']
-        new_imdb_id = request.form['imdb_id']
-        if not new_title or not new_year or not new_imdb_id:
+        new_movie = mi.Movie(request.form)
+        if not new_movie.isFullyDefined():
             flash('Please enter a title, year, and imdb_id ', 'danger')
         else:
-            update_movie(movie_id, mi.Movie(new_title, new_year, new_imdb_id))
+            update_movie(movie_id, new_movie) 
             flash('Movie updated successfully', 'success')
             return redirect(url_for('review'))
 

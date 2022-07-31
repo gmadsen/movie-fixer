@@ -3,11 +3,20 @@ from json import JSONDecoder
 from io import StringIO
 
 class Movie:
-    def __init__(self, title, year, imdb_id=None, imdb_response=None):
+    def __init__(self, title, year, imdb_id, imdb_response=None):
         self.title = title 
         self.year = year
         self.imdb_id = imdb_id 
         self.imdb_response = imdb_response 
+
+    def __init__(self, form):
+        self.title = form['title']
+        self.year = form['year']
+        self.imdb_id = form['imdb_id']
+
+
+    def isFullyDefined(self) -> bool:
+        return self.title and self.year and self.imdb_id 
         
     def __str__(self):
         if self.imdb_response is None:

@@ -29,21 +29,30 @@
     </div>
 
     <div class="form-group">
-        <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to Update this Movie? Original Search Response will be removed from Movie')">
-            Submit</button>
-    </div>> 
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to Update this Movie? Original Search Response will be removed from Movie')">Submit</button>
+    </div> 
+
+    <div class="form-group">
+        <button type="reset" class="btn btn-primary">Reset</button>
+    </div> 
 
 </form>
 <hr>
+
+<script>
+    function fillform(value, idx) {
+        const nodelist = document.querySelectorAll('.form-group');
+        console.log(nodelist[idx].children[1].value = value);
+    }
+</script>
 {% for search in searches %}
             <h2>{{ search.title }} ({{ search.year }}) </h2>
-            <span class="badge badge-primary">{{ search.year }}</span>
-            <span class="badge badge-primary">{{ search.imdb_id }}</span>
+            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
+            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
+            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id }}', 2)">{{ search.imdb_id }}</button>
             <img src={{search.poster}} alt="No Poster available" width="104" height="142">
-        </a>
         <hr>
         {% endfor %}
-<h1></h1>
 
 <hr>
 
