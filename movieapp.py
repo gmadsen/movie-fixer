@@ -1,7 +1,7 @@
 import sqlite3
 from flask import Flask, render_template, request, url_for, flash, redirect
 from werkzeug.exceptions import abort
-import MovieInteface as mi
+import MovieInterface as mi
 import MoviesDB as mdb
 
 
@@ -26,6 +26,7 @@ get_searches_by_movie_id = safe(mdb.MoviesDB.getSearchesByMovieId)
 get_movies_with_valid_searches = safe(mdb.MoviesDB.getMoviesWithValidSearches)
 get_stats = safe(mdb.MoviesDB.getStats)
 update_movie = safe(mdb.MoviesDB.updateMovie)
+auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
 
 
 ## Routes ##
@@ -43,12 +44,17 @@ def movie(movie_id):
 
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
+    if request.method == 'POST':
+        print("we got a post")
+        print(request.form)
+        auto_match_movies()
+        return redirect(url_for('stats'))
     return render_template('statistics.html', stats=get_stats())
 
 @app.route('/fix/<int:movie_id>', methods=['GET', 'POST'])
 def fix(movie_id):
     if request.method == 'POST':
-        new_movie = mi.Movie(request.form)
+        new_movie = mi.Movie.from_tuple(request.form)
         if not new_movie.isFullyDefined():
             flash('Please enter a title, year, and imdb_id ', 'danger')
         else:

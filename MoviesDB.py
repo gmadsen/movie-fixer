@@ -1,4 +1,5 @@
 import sqlite3
+import MovieInterface as mi 
 
 class Stats:
     def __init__(self):
@@ -58,6 +59,7 @@ class MoviesDB:
 
             for search in movie.imdb_response.results:
                 cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, type, poster) VALUES (?, ?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.type, search.poster))
+
             self.conn.commit()
 
         except Exception as e:
@@ -157,7 +159,29 @@ class MoviesDB:
                 """)
         stats.total_reviewable_movies = cur.fetchone()[0]
         return stats
-    
+
+    def getMoviesWithConfidentMatch(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute("""
+                    SELECT Movies.id, Movies.title, Movies.year, Movies.imdb_id 
+                    FROM Movies
+                    INNER JOIN Responses ON Movies.id = Responses.from_movies_id
+                    WHERE Responses.valid = 1 AND Responses.total_results = 1
+                    """)
+        return cur.fetchall()
+
+    def autoMatchMovies(self):
+        if self.conn is None:
+            return
+        movies = self.getMoviesWithConfidentMatch()
+        for movie in movies:
+            searches = self.getSearchesByMovieId(movie['id'])
+            mi_movie = mi.Movie(movie['title'], movie['year'], searches[0]['imdb_id'])
+            self.updateMovie(movie['id'], mi_movie)
+        return True
 
     def close(self):
         if self.conn is not None:

@@ -9,11 +9,9 @@ class Movie:
         self.imdb_id = imdb_id 
         self.imdb_response = imdb_response 
 
-    def __init__(self, form):
-        self.title = form['title']
-        self.year = form['year']
-        self.imdb_id = form['imdb_id']
-
+    @classmethod
+    def from_tuple(cls, form):
+        return cls(form['title'], form['year'], form['imdb_id'])
 
     def isFullyDefined(self) -> bool:
         return self.title and self.year and self.imdb_id 
