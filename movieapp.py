@@ -66,3 +66,5 @@ def fix(movie_id):
             # return redirect(url_for('review'))
 
     return render_template('fix.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
+
+# TODO add a route for a route for movies with no searches or failed responses
