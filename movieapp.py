@@ -60,6 +60,9 @@ def fix(movie_id):
         else:
             update_movie(movie_id, new_movie) 
             flash('Movie updated successfully', 'success')
-            return redirect(url_for('review'))
+            # seems a waste, but im not sure of a better way to get next movie id
+            next_movie = get_movies_with_valid_searches()[0]
+            return redirect(url_for('fix', movie_id=next_movie['id']))
+            # return redirect(url_for('review'))
 
     return render_template('fix.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
