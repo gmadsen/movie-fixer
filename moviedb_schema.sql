@@ -4,6 +4,8 @@
             title TEXT NOT NULL,
             year INTEGER,
             imdb_id TEXT,
+            tmdb_id TEXT,
+            poster TEXT,
             UNIQUE(title, year)
         );
 

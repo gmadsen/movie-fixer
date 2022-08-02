@@ -21,16 +21,25 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
+
       <ul class="navbar-nav">
         <li class="nav-item active">
-          <a class="nav-link" href="{{ url_for('review')}}">Movies to Fix!</a>
+          <a class="nav-link" href="{{ url_for('review')}}">Movies to Review!</a>
         </li>
       </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="{{ url_for('invalid')}}">Invalid Movies :( </a>
+        </li>
+      </ul>
+
       <ul class="navbar-nav">
         <li class="nav-item active">
           <a class="nav-link" href="{{ url_for('stats')}}">Statistics and Tools</a>
         </li>
       </ul>
+
     </div>
   </nav>
   <div class="container">

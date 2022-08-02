@@ -24,6 +24,7 @@ get_movie = safe(mdb.MoviesDB.getMovie)
 get_all_movies = safe(mdb.MoviesDB.getAllMovies)
 get_searches_by_movie_id = safe(mdb.MoviesDB.getSearchesByMovieId)
 get_movies_with_valid_searches = safe(mdb.MoviesDB.getMoviesWithValidSearches)
+get_movies_with_invalid_searches = safe(mdb.MoviesDB.getMoviesWithInvalidSearches)
 get_stats = safe(mdb.MoviesDB.getStats)
 update_movie = safe(mdb.MoviesDB.updateMovie)
 auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
@@ -37,6 +38,10 @@ def index():
 @app.route('/review')
 def review():
     return render_template('review.html', movies=get_movies_with_valid_searches())
+
+@app.route('/invalid')
+def invalid():
+    return render_template('invalid.html', movies_with_errors=get_movies_with_invalid_searches())
 
 @app.route('/movie/<int:movie_id>')
 def movie(movie_id):
@@ -67,4 +72,15 @@ def fix(movie_id):
 
     return render_template('fix.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
 
-# TODO add a route for a route for movies with no searches or failed responses
+@app.route('/search/<int:movie_id>', methods=['GET', 'POST'])
+def search(movie_id):
+    if request.method == 'POST':
+        new_movie = mi.Movie.from_tuple(request.form)
+        if not new_movie.isFullyDefined():
+            flash('Please enter a title, year, and imdb_id ', 'danger')
+        else:
+            update_movie(movie_id, new_movie) 
+            flash('Movie updated successfully', 'success')
+            return redirect(url_for('invalid'))
+
+    return render_template('search.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))

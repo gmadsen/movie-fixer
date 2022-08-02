@@ -6,6 +6,7 @@ class Stats:
         self.total_movies = 0 
         self.total_movies_missing_imdb_id = 0
         self.total_reviewable_movies = 0 
+        self.total_movies_with_invalid_searches = 0
         self.total_responses = 0
         self.total_searches = 0
 
@@ -110,6 +111,20 @@ class MoviesDB:
         cur.execute("""SELECT * FROM Movies WHERE imdb_id=''""")
         return cur.fetchall()
 
+    def getMoviesWithInvalidSearches(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute(""" SELECT Movies.id, Movies.title, Movies.year, Movies.imdb_id, Responses.error
+                    FROM Movies INNER JOIN Responses 
+                    ON Movies.id = Responses.from_movies_id
+                    WHERE Responses.valid = 0
+                    """)
+        return cur.fetchall()
+        
+        
+        
     def getMoviesWithValidSearches(self):
         if self.conn is None:
             return
@@ -117,8 +132,8 @@ class MoviesDB:
         cur = self.conn.cursor()
         cur.execute("""
                     SELECT Movies.id, Movies.title, Movies.year, Movies.imdb_id 
-                    FROM Movies
-                    INNER JOIN Responses ON Movies.id = Responses.from_movies_id
+                    FROM Movies INNER JOIN Responses 
+                    ON Movies.id = Responses.from_movies_id
                     WHERE Responses.valid = 1
                     """)
         return cur.fetchall()
@@ -145,6 +160,11 @@ class MoviesDB:
         
         cur.execute("""SELECT COUNT(*) FROM Movies WHERE imdb_id=''""")
         stats.total_movies_missing_imdb_id = cur.fetchone()[0]
+
+        cur.execute("""SELECT COUNT(*) FROM Movies 
+                    INNER JOIN Responses ON Movies.id = Responses.from_movies_id
+                    WHERE Responses.valid = 0 """) 
+        stats.total_movies_with_invalid_searches = cur.fetchone()[0]
  
         cur.execute("""SELECT COUNT(*) FROM Responses""")
         stats.total_responses = cur.fetchone()[0]
