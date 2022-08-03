@@ -5,7 +5,6 @@
             year INTEGER,
             imdb_id TEXT,
             tmdb_id TEXT,
-            poster TEXT,
             UNIQUE(title, year)
         );
 
@@ -13,8 +12,7 @@
         CREATE TABLE IF NOT EXISTS Responses (
             id INTEGER PRIMARY KEY,
             from_movies_id INTEGER NOT NULL,
-            valid INTEGER NOT NULL,
-            error TEXT,
+            source TEXT NOT NULL,
             total_results INTEGER,
             FOREIGN KEY (from_movies_id) REFERENCES Movies(id)
         );
@@ -25,8 +23,11 @@
             from_responses_id INTEGER NOT NULL,  
             title TEXT,
             year INTEGER,
+            release_date TEXT,
+            original_title TEXT,
+            original_language TEXT,
             imdb_id TEXT,
-            type TEXT,
-            poster TEXT,
+            tmdb_id TEXT,
+            poster_path TEXT,
             FOREIGN KEY (from_responses_id) REFERENCES Responses(id)
         );

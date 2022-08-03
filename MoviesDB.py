@@ -5,8 +5,10 @@ class Stats:
     def __init__(self):
         self.total_movies = 0 
         self.total_movies_missing_imdb_id = 0
+        self.total_movies_missing_tmdb_id = 0
+        self.total_movies_missing_both_ids = 0
         self.total_reviewable_movies = 0 
-        self.total_movies_with_invalid_searches = 0
+        self.total_movies_needing_queries = 0
         self.total_responses = 0
         self.total_searches = 0
 
@@ -52,10 +54,10 @@ class MoviesDB:
         cur = self.conn.cursor()
         try:
 
-            cur.execute("""INSERT INTO Movies (title, year, imdb_id) VALUES (?, ?, ?)""", (movie.title, movie.year, movie.imdb_id))
+            cur.execute("""INSERT INTO Movies (title, year, imdb_id, tmdb_id) VALUES (?, ?, ?, ?)""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id))
             from_movie_id = cur.lastrowid
 
-            cur.execute("""INSERT INTO Responses (from_movies_id, valid, error, total_results) VALUES (?, ?, ?, ?)""", (from_movie_id, movie.imdb_response.valid, movie.imdb_response.error, movie.imdb_response.total_results))
+            cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?, ?)""", (from_movie_id, "imdb", movie.imdb_response.total_results))
             from_response_id = cur.lastrowid
 
             for search in movie.imdb_response.results:

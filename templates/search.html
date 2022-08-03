@@ -29,14 +29,6 @@
     </div>
 
     <div class="form-group">
-        <label for="tmdb_id">TMDB ID</label>
-        <input type="text" name="tmdb_id" placeholder="Movie TMDB ID"
-               class="form-control"
-               value="{{ request.form['tmdb_id'] or movie['tmdb_id'] }}">
-        </input>
-
-    </div>
-    <div class="form-group">
         <button type="submit" class="btn btn-primary">Submit</button>
     </div> 
 
@@ -54,23 +46,15 @@
         console.log(nodelist[idx].children[1].value = value);
     }
 </script>
-
-{% for search in imdb_searches %}
+{% for search in searches %}
             <h2>{{ search.title }} ({{ search.year }}) </h2>
             <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
             <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id }}', 2)">{{ search.imdb_id }}</button>
-            <img src={{search.poster}} alt="No Poster available" width="104" height="142">
-        <hr>
-{% endfor %}
-{% for search in tmdb_searches %}
-            <h2>{{ search.title }} ({{ search.year }}) </h2>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.original_title }}', 0)">{{ search.original_title }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 3)">{{ search.tmdb_id }}</button>
+            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 2)">{{ search.tmdb_id }}</button>
             <img src={{search.poster_path}} alt="No Poster available" width="104" height="142">
         <hr>
-{% endfor %}
+        {% endfor %}
+
 <hr>
 
 

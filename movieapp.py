@@ -77,10 +77,11 @@ def search(movie_id):
     if request.method == 'POST':
         new_movie = mi.Movie.from_tuple(request.form)
         if not new_movie.isFullyDefined():
-            flash('Please enter a title, year, and imdb_id ', 'danger')
+            flash('Please enter a title, year, and an id ', 'danger')
         else:
             update_movie(movie_id, new_movie) 
             flash('Movie updated successfully', 'success')
             return redirect(url_for('invalid'))
-
-    return render_template('search.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
+    ## temp test ##
+    searches = [{'title': 'The Bandit', 'year': '1996', 'tmdb_id': '26900', 'poster_path': 'https://image.tmdb.org/t/p/w92/44KTRoayojxpzti2okBZGKmjEGM.jpg'}]
+    return render_template('search.html', movie=get_movie(movie_id), searches=searches)
