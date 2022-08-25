@@ -55,7 +55,7 @@
     }
 </script>
 
-{% for search in imdb_searches %}
+{% for search in searches %}
             <h2>{{ search.title }} ({{ search.year }}) </h2>
             <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
             <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
