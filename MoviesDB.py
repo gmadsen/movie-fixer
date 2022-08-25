@@ -1,5 +1,6 @@
 import sqlite3
 import MovieInterface as mi 
+import tmdbAPI 
 
 class Stats:
     def __init__(self):
@@ -11,6 +12,7 @@ class Stats:
         self.total_movies_needing_queries = 0
         self.total_responses = 0
         self.total_searches = 0
+
 
 class MoviesDB:
     def __init__(self, db='data/movies.db', build_tables=False):
@@ -57,11 +59,21 @@ class MoviesDB:
             cur.execute("""INSERT INTO Movies (title, year, imdb_id, tmdb_id) VALUES (?, ?, ?, ?)""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id))
             from_movie_id = cur.lastrowid
 
-            cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?, ?)""", (from_movie_id, "imdb", movie.imdb_response.total_results))
-            from_response_id = cur.lastrowid
+            if movie.imdb_response is not None:
+                cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?, ?)""", (from_movie_id, "imdb", movie.imdb_response.total_results))
+                from_response_id = cur.lastrowid
 
-            for search in movie.imdb_response.results:
-                cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, type, poster) VALUES (?, ?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.type, search.poster))
+                for search in movie.imdb_response.results:
+                    cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, poster_path) VALUES (?, ?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.poster_path))
+
+            if movie.tmdb_response is not None:
+                cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (from_movie_id, "tmdb", movie.tmdb_response.total_results))
+                from_response_id = cur.lastrowid
+                
+                for search in movie.tmdb_response.results:
+                    cur.execute("""INSERT INTO Searches (from_responses_id, title, year, tmdb_id, type, poster_path) VALUES (?, ?, ?, ?, ?, ?)""",
+                                (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.imdb_id, search.tmdb_id, search.poster_path))
+
 
             self.conn.commit()
 
@@ -70,12 +82,12 @@ class MoviesDB:
             self.conn.rollback()
    
 
-    def updateMovie(self, movie_id, movie):
+    def updateMovieToValid(self, movie_id, movie):
         if self.conn is None:
             return
         cur = self.conn.cursor()
         try:
-            cur.execute("""UPDATE Movies SET title = ?, year = ?, imdb_id = ? WHERE id = ?""", (movie.title, movie.year, movie.imdb_id, movie_id))
+            cur.execute("""UPDATE Movies SET title = ?, year = ?, imdb_id = ?, tmdb_id = ? WHERE id = ?""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id, movie_id))
             cur.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
             cur.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,)) 
             self.conn.commit()
@@ -86,7 +98,28 @@ class MoviesDB:
             self.conn.rollback()
             return False
             
+    def addTmdbMovieQueryToMovie(self, movie_id, movie):
+        if self.conn is None:
+            return
+        try:
+            movie = tmdbAPI.updateMovieWithMovieQuery(movie)
+        except Exception as e:
+            print(e)
+            return False
 
+        cur = self.conn.cursor()
+        try:
+            cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "tmdb", movie.tmdb_response.total_results))
+            from_response_id = cur.lastrowid
+        
+            for search in movie.tmdb_response.results:
+                cur.execute("""INSERT INTO Searches (from_responses_id, title, year, tmdb_id, type, poster_path) VALUES (?, ?, ?, ?, ?, ?)""",
+                        (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.imdb_id, search.tmdb_id, search.poster_path))
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
+            return False
+        
     def getMovie(self, movie_id):
         if self.conn is None:
             print("DB is not connected")
@@ -202,7 +235,7 @@ class MoviesDB:
         for movie in movies:
             searches = self.getSearchesByMovieId(movie['id'])
             mi_movie = mi.Movie(movie['title'], movie['year'], searches[0]['imdb_id'])
-            self.updateMovie(movie['id'], mi_movie)
+            self.updateMovieToValid(movie['id'], mi_movie)
         return True
 
     def close(self):

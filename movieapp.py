@@ -26,7 +26,7 @@ get_searches_by_movie_id = safe(mdb.MoviesDB.getSearchesByMovieId)
 get_movies_with_valid_searches = safe(mdb.MoviesDB.getMoviesWithValidSearches)
 get_movies_with_invalid_searches = safe(mdb.MoviesDB.getMoviesWithInvalidSearches)
 get_stats = safe(mdb.MoviesDB.getStats)
-update_movie = safe(mdb.MoviesDB.updateMovie)
+update_movie_to_valid = safe(mdb.MoviesDB.updateMovieToValid)
 auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
 
 
@@ -51,7 +51,8 @@ def movie(movie_id):
 def stats():
     if request.method == 'POST':
         print("we got a post")
-        print(request.form)
+        specialsomething = request.form.getlist('autofix')
+        print(specialsomething)
         auto_match_movies()
         return redirect(url_for('stats'))
     return render_template('statistics.html', stats=get_stats())
@@ -63,7 +64,7 @@ def fix(movie_id):
         if not new_movie.isFullyDefined():
             flash('Please enter a title, year, and imdb_id ', 'danger')
         else:
-            update_movie(movie_id, new_movie) 
+            update_movie_to_valid(movie_id, new_movie) 
             flash('Movie updated successfully', 'success')
             # seems a waste, but im not sure of a better way to get next movie id
             next_movie = get_movies_with_valid_searches()[0]
@@ -79,7 +80,7 @@ def search(movie_id):
         if not new_movie.isFullyDefined():
             flash('Please enter a title, year, and an id ', 'danger')
         else:
-            update_movie(movie_id, new_movie) 
+            update_movie_to_valid(movie_id, new_movie) 
             flash('Movie updated successfully', 'success')
             return redirect(url_for('invalid'))
     ## temp test ##

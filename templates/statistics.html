@@ -34,12 +34,16 @@
     <h2>Tools</h2>
 
     <form method="post">
-    
-        <div class="form-group">
-            <button type="submit" value="autofix" class="btn btn-primary"
-                    onclick="return confirm('Are you sure you want to Update All Movies?')">Auto Fix Movies</button>
+        <div class>
+                <label for="autofix">Attempt API search</label>
+                <button type="submit" value="true" class="btn btn-primary"
+                    onclick="return confirm('Are you sure you want to Update All Movies?')">Auto Fix Movies improved</button>
         </div> 
-    
+    </form>
+
+    <form method="post">
+            <input type="submit" value="autofix" class="btn btn-primary"
+                    onclick="return confirm('Are you sure you want to Update All Movies?')">
     </form>
 
 {% endblock %}
