@@ -50,8 +50,8 @@ def movie(movie_id):
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
     if request.method == 'POST':
-        print("we got a post")
-        specialsomething = request.form.getlist('autofix')
+        print("we got a post of length: " + str(len(request.form)))
+        specialsomething = request.form.getlist('subject')
         print(specialsomething)
         auto_match_movies()
         return redirect(url_for('stats'))

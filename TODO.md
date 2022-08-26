@@ -10,4 +10,5 @@ Movie library metadata fixer
 - [ ] convert to posgre
 - [ ] remove concept of bad imdb, just dont attach any og query
 - [ ] make init files for each package
-- [ ] set up launch file for browser debugger integration
+- [x] set up launch file for browser debugger integration
+- [ ] update confident  match funtion to use tmdb and imdb
