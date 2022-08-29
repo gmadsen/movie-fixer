@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} {{movies_with_errors|length()}}  Loved but Invalid Children :(  {% endblock %}</h1>
-    {% for movie in movies_with_errors %}
+    <h1>{% block title %} {{invalid_movies|length()}}  Loved but Invalid Children :(  {% endblock %}</h1>
+    {% for movie in invalid_movies %}
         <a href="{{ url_for('movie', movie_id=movie['id']) }}">
             <h2>{{ movie.title }} ({{ movie.year }}) </h2>
         </a>
-            <h2>Error Message: {{ movie.error }}</h2>
         <a href="{{ url_for('search', movie_id=movie['id']) }}">
             <span class="badge badge-warning">Search</span>
         </a>

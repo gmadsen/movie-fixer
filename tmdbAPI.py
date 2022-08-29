@@ -29,7 +29,7 @@ class TmdbSearchResult:
         self.year = datetime.strptime(self.release_date, "%Y-%m-%d").year
         self.original_language = result["original_language"]
         self.tmdb_id = result["id"]
-        self.poster_path = result["poster_path"]
+        self.poster_path = POSTER_PREFIX + result["poster_path"] if result["poster_path"] is not None else None
     def __str__(self):
         return f"{self.title} ({self.year})"
     def __repr__(self):

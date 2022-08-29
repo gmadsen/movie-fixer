@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} {{movies|length()}} Left to Fix!  {% endblock %}</h1>
+    <h1>{% block title %} {{movies|length()}} Movies to Review!  {% endblock %}</h1>
     {% for movie in movies %}
         <a href="{{ url_for('movie', movie_id=movie['id']) }}">
             <h2>{{ movie.title }} ({{ movie.year }}) </h2>
         </a>
         <a href="{{ url_for('fix', movie_id=movie['id']) }}">
-            <span class="badge badge-warning">Fix</span>
+            <span class="badge badge-warning">Review</span>
         </a>
         <hr>
         {% endfor %}

@@ -7,14 +7,20 @@
         <div class=stat_col_1>Total # of Movies in Collection:</div>
         <div class=stat_col_2>{{ stats.total_movies }}</div>
     </div>
+
     <div id="box">
         <div class=stat_col_1>Total # of Movies Missing IMDB ID:</div>
         <div class=stat_col_2>{{ stats.total_movies_missing_imdb_id }}</div>
     </div>
 
     <div id="box">
-        <div class=stat_col_1>Total # of Movies With Invalid Searches:</div>
-        <div class=stat_col_2>{{ stats.total_movies_with_invalid_searches }}</div>
+        <div class=stat_col_1>Total # of Movies Missing TMDB ID:</div>
+        <div class=stat_col_2>{{ stats.total_movies_missing_tmdb_id }}</div>
+    </div>
+
+    <div id="box">
+        <div class=stat_col_1>Total # of Movies Missing Both IDs:</div>
+        <div class=stat_col_2>{{ stats.total_movies_missing_both_ids }}</div>
     </div>
 
     <div id="box">
@@ -42,6 +48,11 @@
         <div class>
             <button type="submit" name="subject" value="query" class="btn btn-primary"
                 onclick="return confirm('Are you sure you want to call and attach queries for all movies that arent valid?')">Query All</button>
+        </div> 
+
+        <div class>
+            <button type="submit" name="subject" value="reset" class="btn btn-primary"
+                onclick="return confirm('DANGER VERWARNUG!!!!!! Are you want to reset all Tables??')">HARD RESET</button>
         </div> 
 
     </form>

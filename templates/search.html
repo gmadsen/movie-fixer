@@ -2,61 +2,11 @@
 
 {% block content %}
 <h1>{% block title %} Fix "{{ movie['title'] }} ({{movie['year']}})" {% endblock %}</h1>
-
+<hr>
 <form method="post">
-    <div class="form-group">
-        <label for="title">Title</label>
-        <input type="text" name="title" placeholder="Movie title"
-               class="form-control"
-               value="{{ request.form['title'] or movie['title'] }}">
-        </input>
-    </div>
-
-    <div class="form-group">
-        <label for="year">Year</label>
-        <input type="text" name="year" placeholder="Movie year"
-               class="form-control"
-               value="{{ request.form['year'] or movie['year'] }}">
-        </input>
-    </div>
-
-    <div class="form-group">
-        <label for="imdb_id">IMDB ID</label>
-        <input type="text" name="imdb_id" placeholder="Movie IMDB ID"
-               class="form-control"
-               value="{{ request.form['imdb_id'] or movie['imdb_id'] }}">
-        </input>
-    </div>
-
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Submit</button>
+    <div class=>
+        <button type="submit" name="subject" value="search" class="btn btn-primary">Ask for Help</button>
     </div> 
-
-    <div class="form-group">
-        <button type="reset" class="btn btn-primary">Reset</button>
-    </div> 
-
 </form>
-<hr>
-
-<script>
-    // too lazy to to figure out a better way to do this, probably need some framework 
-    function fillform(value, idx) {
-        const nodelist = document.querySelectorAll('.form-group');
-        console.log(nodelist[idx].children[1].value = value);
-    }
-</script>
-{% for search in searches %}
-            <h2>{{ search.title }} ({{ search.year }}) </h2>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 2)">{{ search.tmdb_id }}</button>
-            <img src={{search.poster_path}} alt="No Poster available" width="104" height="142">
-        <hr>
-        {% endfor %}
-
-<hr>
-
-
 
 {% endblock %}

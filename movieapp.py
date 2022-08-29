@@ -1,3 +1,4 @@
+from re import A
 import sqlite3
 from flask import Flask, render_template, request, url_for, flash, redirect
 from werkzeug.exceptions import abort
@@ -24,10 +25,15 @@ get_movie = safe(mdb.MoviesDB.getMovie)
 get_all_movies = safe(mdb.MoviesDB.getAllMovies)
 get_searches_by_movie_id = safe(mdb.MoviesDB.getSearchesByMovieId)
 get_movies_with_valid_searches = safe(mdb.MoviesDB.getMoviesWithValidSearches)
-get_movies_with_invalid_searches = safe(mdb.MoviesDB.getMoviesWithInvalidSearches)
+get_invalid_movies = safe(mdb.MoviesDB.getInvalidMovies)
 get_stats = safe(mdb.MoviesDB.getStats)
 update_movie_to_valid = safe(mdb.MoviesDB.updateMovieToValid)
 auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
+query_all_invalids = safe(mdb.MoviesDB.queryAllInvalids)
+hard_db_reset = safe(mdb.MoviesDB.hardDBReset)
+load_original_data = safe(mdb.MoviesDB.loadOriginalData)
+tmdb_search = safe(mdb.MoviesDB.addTmdbMovieQueryToMovie)
+
 
 
 ## Routes ##
@@ -41,7 +47,7 @@ def review():
 
 @app.route('/invalid')
 def invalid():
-    return render_template('invalid.html', movies_with_errors=get_movies_with_invalid_searches())
+    return render_template('invalid.html', invalid_movies=get_invalid_movies())
 
 @app.route('/movie/<int:movie_id>')
 def movie(movie_id):
@@ -50,10 +56,15 @@ def movie(movie_id):
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
     if request.method == 'POST':
-        print("we got a post of length: " + str(len(request.form)))
-        specialsomething = request.form.getlist('subject')
-        print(specialsomething)
-        auto_match_movies()
+        action = request.form.getlist('subject')[0]
+        if action == 'match':
+            auto_match_movies()
+        elif action == 'query':
+            query_all_invalids() 
+        elif action == 'reset':
+            print("attempting to reset")
+            hard_db_reset()
+            return redirect(url_for('index'))
         return redirect(url_for('stats'))
     return render_template('statistics.html', stats=get_stats())
 
@@ -62,7 +73,7 @@ def fix(movie_id):
     if request.method == 'POST':
         new_movie = mi.Movie.from_tuple(request.form)
         if not new_movie.isFullyDefined():
-            flash('Please enter a title, year, and imdb_id ', 'danger')
+            flash('Please enter a title, year, and imdb_id/tmdb_id', 'danger')
         else:
             update_movie_to_valid(movie_id, new_movie) 
             flash('Movie updated successfully', 'success')
@@ -70,19 +81,15 @@ def fix(movie_id):
             next_movie = get_movies_with_valid_searches()[0]
             return redirect(url_for('fix', movie_id=next_movie['id']))
             # return redirect(url_for('review'))
-
     return render_template('fix.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
 
 @app.route('/search/<int:movie_id>', methods=['GET', 'POST'])
-def search(movie_id):
+def search(movie_id): 
     if request.method == 'POST':
-        new_movie = mi.Movie.from_tuple(request.form)
-        if not new_movie.isFullyDefined():
-            flash('Please enter a title, year, and an id ', 'danger')
-        else:
-            update_movie_to_valid(movie_id, new_movie) 
-            flash('Movie updated successfully', 'success')
+        action = request.form.getlist('subject')[0]
+        if action == 'search':
+            tmdb_search(movie_id)
             return redirect(url_for('invalid'))
     ## temp test ##
-    searches = [{'title': 'The Bandit', 'year': '1996', 'tmdb_id': '26900', 'poster_path': 'https://image.tmdb.org/t/p/w92/44KTRoayojxpzti2okBZGKmjEGM.jpg'}]
-    return render_template('search.html', movie=get_movie(movie_id), searches=searches)
+    # searches = [{'title': 'The Bandit', 'year': '1996', 'tmdb_id': '26900', 'poster_path': 'https://image.tmdb.org/t/p/w92/44KTRoayojxpzti2okBZGKmjEGM.jpg'}]
+    return render_template('search.html', movie=get_movie(movie_id))

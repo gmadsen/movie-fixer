@@ -1,6 +1,6 @@
 
 import requests
-from json import JSONDecoder
+import json
 from datetime import datetime
 from io import StringIO
 from MovieInterface import Movie
@@ -69,7 +69,7 @@ class ImdbResponse:
         
 
 def convertAggregateImdbResponseFileToMovies(aggregate_imdb_response_file):
-    dumb_json_data = JSONDecoder().decode(open(aggregate_imdb_response_file).read())
+    dumb_json_data = json.JSONDecoder().decode(open(aggregate_imdb_response_file).read())
     movies = []
     decoded_data = [x[1] for x in dumb_json_data.items()]
 

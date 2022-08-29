@@ -9,7 +9,6 @@
         <input type="text" name="title" placeholder="Movie title"
                class="form-control"
                value="{{ request.form['title'] or movie['title'] }}">
-        </input>
     </div>
 
     <div class="form-group">
@@ -17,7 +16,6 @@
         <input type="text" name="year" placeholder="Movie year"
                class="form-control"
                value="{{ request.form['year'] or movie['year'] }}">
-        </input>
     </div>
 
     <div class="form-group">
@@ -25,7 +23,6 @@
         <input type="text" name="imdb_id" placeholder="Movie IMDB ID"
                class="form-control"
                value="{{ request.form['imdb_id'] or movie['imdb_id'] }}">
-        </input>
     </div>
 
     <div class="form-group">
@@ -33,7 +30,6 @@
         <input type="text" name="tmdb_id" placeholder="Movie TMDB ID"
                class="form-control"
                value="{{ request.form['tmdb_id'] or movie['tmdb_id'] }}">
-        </input>
 
     </div>
     <div class="form-group">
@@ -42,17 +38,10 @@
 
     <div class="form-group">
         <button type="reset" class="btn btn-primary">Reset</button>
+    
     </div> 
 
 </form>
-
-<form method="post">
-    <div class="form-group">
-        <button type="submit" value="autofix" class="btn btn-primary"
-                onclick="return confirm('Are you sure you want to Update All Movies?')">Attempt API search</button>
-    </div> 
-</form>
-<hr>
 
 <script>
     // too lazy to to figure out a better way to do this, probably need some framework 
@@ -63,23 +52,18 @@
 </script>
 
 {% for search in searches %}
-            <h2>{{ search.title }} ({{ search.year }}) </h2>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id }}', 2)">{{ search.imdb_id }}</button>
-            <img src={{search.poster}} alt="No Poster available" width="104" height="142">
-        <hr>
+    <h2>{{ search.title }} ({{ search.year }}) </h2>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id }}', 2)">{{ search.imdb_id }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 3)">{{ search.tmdb_id }}</button>
+    <h3>{{ search.original_title if search.original_title is not none }}
+        {{ search.release_date if search.release_date is not none }}
+        {{ search.original_language if search.original_language is not none }}
+    </h3>
+    <img src={{ search.poster_path }} alt="No Poster available" width="104" height="142">
+       
+    <hr>
 {% endfor %}
-{% for search in tmdb_searches %}
-            <h2>{{ search.title }} ({{ search.year }}) </h2>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.original_title }}', 0)">{{ search.original_title }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
-            <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 3)">{{ search.tmdb_id }}</button>
-            <img src={{search.poster_path}} alt="No Poster available" width="104" height="142">
-        <hr>
-{% endfor %}
-<hr>
-
-
 
 {% endblock %}
