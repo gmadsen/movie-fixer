@@ -19,18 +19,7 @@ get_invalid_movies = safe(mdb.MoviesDB.getInvalidMovies)
 get_stats = safe(mdb.MoviesDB.getStats)
 update_movie_to_valid = safe(mdb.MoviesDB.updateMovieToValid)
 auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
-query_all_invalids = safe(mdb.MoviesDB.queryAllInvalids)
 hard_db_reset = safe(mdb.MoviesDB.hardDBReset)
 load_original_data = safe(mdb.MoviesDB.loadOriginalData)
 tmdb_search = safe(mdb.MoviesDB.addTmdbMovieQueryToMovie)
-export_valid_movies = safe(mdb.MoviesDB.exportValidMovies)
-
-# routing logic
-def handle_movie_update_request(form):
-    new_movie = mi.Movie.from_tuple(form)
-    if not new_movie.isFullyDefined():
-        return False
-    else:
-        update_movie_to_valid(movie_id, new_movie) 
-        return get_movies_with_valid_searches()[0]
-     
+get_valid_movies = safe(mdb.MoviesDB.getValidMovies)

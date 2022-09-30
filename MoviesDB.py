@@ -244,11 +244,16 @@ class MoviesDB:
             return
         self.conn.row_factory = sqlite3.Row
         cur = self.conn.cursor()
+
         cur.execute("""
-                    SELECT * 
-                    FROM Movies
-                    INNER JOIN Responses ON Movies.id = Responses.from_movies_id
-                    WHERE Responses.total_results = 1
+            SELECT Movies.id, Movies.title, Movies.year, Searches.imdb_id, Searches.tmdb_id  
+            FROM Movies
+            INNER JOIN Responses ON 
+            Movies.id = Responses.from_movies_id
+            INNER JOIN Searches ON 
+            Responses.id = Searches.from_responses_id
+            WHERE Movies.title = Searches.title
+            AND Movies.year = Searches.year
                     """)
         return cur.fetchall()
 
@@ -258,13 +263,13 @@ class MoviesDB:
 
         movies = self.getMoviesWithConfidentMatch()
         for movie in movies:
-            searches = self.getSearchesByMovieId(movie['id'])
-            mi_movie = mi.Movie(movie['title'], movie['year'], searches[0]['imdb_id'], searches[0]['tmdb_id'])
-            self.updateMovieToValid(movie['id'], mi_movie)
+            #searches = self.getSearchesByMovieId(movie['id'])
+            if (movie['imdb_id'] != '' or movie['tmdb_id'] != ''):
+                mi_movie = mi.Movie(movie['title'], movie['year'], movie['imdb_id'], movie['tmdb_id'])
+                self.updateMovieToValid(movie['id'], mi_movie)
+            else:
+                return False
         return True
-
-    def queryAllInvalids(self):
-        return
 
     def close(self):
         if self.conn is not None:
@@ -284,12 +289,3 @@ class MoviesDB:
 
     def loadOriginalData(self):
         self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_1_responded.json"))
-
-    def exportValidMovies(self):
-        return self.getValidMovies()
-        #temp = self.getValidMovies()
-        #for temp_movie in temp:
-        #    movie = mi.Movie(temp_movie['title'], temp_movie['year'], temp_movie['imdb_id'], temp_movie['tmdb_id'])
-        
-        
-        

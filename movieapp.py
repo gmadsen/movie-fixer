@@ -17,7 +17,7 @@ def index():
 
 @app.route('/download')
 def download_file():
-    movies = export_valid_movies()
+    movies = get_valid_movies()
     csvfile = Exporter.make_temp_csv_movie_list(movies, Exporter.Simkl)
     return send_file(csvfile.name, download_name='movies.csv', as_attachment=True, mimetype='text/csv')
 
@@ -40,11 +40,9 @@ def stats():
         if action == 'match':
             auto_match_movies()
         elif action == 'query':
-            query_all_invalids() 
-        elif action == 'export':
-            export_valid_movies()
+            print("not implemented") 
+            #query_all_invalids() 
         elif action == 'reset':
-            print("attempting to reset")
             hard_db_reset()
         return redirect(url_for('stats'))
     return render_template('statistics.html', stats=get_stats())
