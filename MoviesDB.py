@@ -138,6 +138,11 @@ class MoviesDB:
         cur.execute(sql_string, args) 
         return cur.fetchall()
 
+    # def make_query(self, sql_string):
+    #     def query_wrapper(self, *args):
+    #         return self.query(self, sql_string, *args)
+    #     return query_wrapper 
+
  
     def getMovie(self, movie_id):
         if self.conn is None:

@@ -12,3 +12,5 @@ Movie library metadata fixer
 - [x] set up launch file for browser debugger integration
 - [x] update confident  match funtion to use tmdb and imdb
 - [ ] make confident match function case insensitive
+- [ ] make a singular button on review page to remove imdb search
+- [ ] make a way to backup database and restore it
