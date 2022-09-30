@@ -36,14 +36,7 @@ def movie(movie_id):
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
     if request.method == 'POST':
-        action = request.form.getlist('subject')[0]
-        if action == 'match':
-            auto_match_movies()
-        elif action == 'query':
-            print("not implemented") 
-            #query_all_invalids() 
-        elif action == 'reset':
-            hard_db_reset()
+        user_power_button_handler(request.form.getlist('subject')[0])
         return redirect(url_for('stats'))
     return render_template('statistics.html', stats=get_stats())
 

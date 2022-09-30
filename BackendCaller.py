@@ -36,6 +36,15 @@ def attempt_movie_update_from_form(movie_id, form):
     update_movie_to_valid(movie_id, new_movie) 
     return True
 
+def user_power_button_handler(action):
+    if action == 'match' :
+        auto_match_movies()
+    elif action == 'query':
+        print("not implemented") 
+        #query_all_invalids()
+    elif action == 'reset':
+        hard_db_reset()
+
 
 ## SQL Commands ##
 
