@@ -2,6 +2,8 @@
 
 {% block content %}
     <h1>{% block title %} Welcome to GareFixer {% endblock %}</h1>
+    <a href="{{ url_for('download_file') }}">Download Exportable List</a>
+    <hr>
     {% for movie in movies %}
         <a href="{{ url_for('movie', movie_id=movie['id']) }}">
             <h2>{{ movie.title }} ({{ movie.year }}) {{ movie.imdb_id }} {{ movie.tmdb_id }}</h2>

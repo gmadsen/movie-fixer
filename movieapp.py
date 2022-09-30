@@ -1,45 +1,25 @@
-from re import A
+#from re import A
 import sqlite3
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, send_file
 from werkzeug.exceptions import abort
 import MovieInterface as mi
-import MoviesDB as mdb
-
-
+from BackendCaller import *
+import Exporter
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mysecretkey'
-
-
-def safe(func):
-    def db_call(*args, **kwargs):
-        db = mdb.MoviesDB()
-        thing = func(db, *args, **kwargs)
-        db.close()
-        if thing is None:
-            abort(404)
-        return thing
-    return db_call 
-
-get_movie = safe(mdb.MoviesDB.getMovie)
-get_all_movies = safe(mdb.MoviesDB.getAllMovies)
-get_searches_by_movie_id = safe(mdb.MoviesDB.getSearchesByMovieId)
-get_movies_with_valid_searches = safe(mdb.MoviesDB.getMoviesWithValidSearches)
-get_invalid_movies = safe(mdb.MoviesDB.getInvalidMovies)
-get_stats = safe(mdb.MoviesDB.getStats)
-update_movie_to_valid = safe(mdb.MoviesDB.updateMovieToValid)
-auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
-query_all_invalids = safe(mdb.MoviesDB.queryAllInvalids)
-hard_db_reset = safe(mdb.MoviesDB.hardDBReset)
-load_original_data = safe(mdb.MoviesDB.loadOriginalData)
-tmdb_search = safe(mdb.MoviesDB.addTmdbMovieQueryToMovie)
-
 
 
 ## Routes ##
 @app.route('/')
 def index():
     return render_template('index.html', movies=get_all_movies()) 
+
+@app.route('/download')
+def download_file():
+    movies = export_valid_movies()
+    csvfile = Exporter.make_temp_csv_movie_list(movies, Exporter.Simkl)
+    return send_file(csvfile.name, download_name='movies.csv', as_attachment=True, mimetype='text/csv')
 
 @app.route('/review')
 def review():
@@ -61,10 +41,11 @@ def stats():
             auto_match_movies()
         elif action == 'query':
             query_all_invalids() 
+        elif action == 'export':
+            export_valid_movies()
         elif action == 'reset':
             print("attempting to reset")
             hard_db_reset()
-            return redirect(url_for('index'))
         return redirect(url_for('stats'))
     return render_template('statistics.html', stats=get_stats())
 
@@ -80,7 +61,6 @@ def fix(movie_id):
             # seems a waste, but im not sure of a better way to get next movie id
             next_movie = get_movies_with_valid_searches()[0]
             return redirect(url_for('fix', movie_id=next_movie['id']))
-            # return redirect(url_for('review'))
     return render_template('fix.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
 
 @app.route('/search/<int:movie_id>', methods=['GET', 'POST'])
@@ -90,6 +70,4 @@ def search(movie_id):
         if action == 'search':
             tmdb_search(movie_id)
             return redirect(url_for('invalid'))
-    ## temp test ##
-    # searches = [{'title': 'The Bandit', 'year': '1996', 'tmdb_id': '26900', 'poster_path': 'https://image.tmdb.org/t/p/w92/44KTRoayojxpzti2okBZGKmjEGM.jpg'}]
     return render_template('search.html', movie=get_movie(movie_id))

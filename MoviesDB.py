@@ -1,7 +1,7 @@
 import sqlite3
 import MovieInterface as mi 
-import tmdbAPI
-import imdbAPI
+import TmdbAPI
+import ImdbAPI
 
 class Stats:
     def __init__(self):
@@ -107,7 +107,7 @@ class MoviesDB:
             return
         try:
             movie = mi.Movie.from_tuple(self.getMovie(movie_id))
-            movie = tmdbAPI.updateMovieWithMovieQuery(movie)
+            movie = TmdbAPI.updateMovieWithMovieQuery(movie)
             print("now I have stuff, ", movie.tmdb_response.total_results)
         except Exception as e:
             print(e)
@@ -166,6 +166,17 @@ class MoviesDB:
                     WHERE Responses.from_movies_id IS NULL
                     AND Movies.imdb_id = ''
                     AND Movies.tmdb_id = ''
+                    """)
+        return cur.fetchall()
+
+    def getValidMovies(self):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute(""" SELECT * FROM Movies 
+                    WHERE Movies.imdb_id != ''
+                    OR Movies.tmdb_id != ''
                     """)
         return cur.fetchall()
         
@@ -272,4 +283,13 @@ class MoviesDB:
             self.conn.rollback()
 
     def loadOriginalData(self):
-        self.addMovies(imdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_1_responded.json"))
+        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_1_responded.json"))
+
+    def exportValidMovies(self):
+        return self.getValidMovies()
+        #temp = self.getValidMovies()
+        #for temp_movie in temp:
+        #    movie = mi.Movie(temp_movie['title'], temp_movie['year'], temp_movie['imdb_id'], temp_movie['tmdb_id'])
+        
+        
+        
