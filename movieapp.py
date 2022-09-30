@@ -5,10 +5,17 @@ from werkzeug.exceptions import abort
 import MovieInterface as mi
 from BackendCaller import *
 import Exporter
+from jinja2 import FileSystemLoader, Environment, select_autoescape, PackageLoader
+env = Environment(PackageLoader("movieapp"), autoescape=select_autoescape(
+    enabled_extensions=('html', 'xml'),
+    default_for_string=True,
+))
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mysecretkey'
 
+loader = FileSystemLoader("templates")
 
 ## Routes ##
 @app.route('/')

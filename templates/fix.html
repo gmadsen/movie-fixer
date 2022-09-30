@@ -44,19 +44,36 @@
 </form>
 
 <script>
+
+    function decodeHtml(str) {
+        return str 
+        //.replace(/&/g, "&amp;")
+        //.replace(/>/g, "&gt;")
+        //.replace(/"/g, "&quot;")
+        .replace(/&#39;/g, "'");
+      }
     // too lazy to to figure out a better way to do this, probably need some framework 
-    function fillform(value, idx) {
-        const nodelist = document.querySelectorAll('.form-group');
-        console.log(nodelist[idx].children[1].value = value);
+    function fillform(new_value, idx) {
+        //const nodelist = document.querySelectorAll('.form-group');
+        console.log("I am being entered");
+        //value = decodeHtml(value);
+        //console.log("value is")
+        //console.log(value);
+        //console.log(nodelist[0].children[1].value);
+        //console.log(nodelist[1].children[1].value);
+        //console.log(nodelist[2].children[1].value);
+        //console.log("can i log wihtout access?");
+        //console.log("\n\n");
+        //nodelist[idx].children[1].value = value;
     }
 </script>
 
 {% for search in searches %}
-    <h2>{{ search.title }} ({{ search.year }}) </h2>
-    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
-    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
-    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id }}', 2)">{{ search.imdb_id }}</button>
-    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 3)">{{ search.tmdb_id }}</button>
+    <h2> {{ search.title|e }} ({{ search.year }}) </h2>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title| tojson|forceescape  }}' , 0)"> {{ search.title|e     }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year         }}' , 1)"> {{ search.year      }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id      }}' , 2)"> {{ search.imdb_id   }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id      }}' , 3)"> {{ search.tmdb_id   }}</button>
     <h3>{{ search.original_title if search.original_title is not none }}
         {{ search.release_date if search.release_date is not none }}
         {{ search.original_language if search.original_language is not none }}
