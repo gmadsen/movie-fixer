@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{% block title %} {{ movie.title }} ({{ movie.year }}) {% endblock %}</h2>
+    <span class="badge badge-primary">{{ movie.title }}</span>
+    <span class="badge badge-primary">{{ movie.year }}</span>
+    <span class="badge badge-primary">{{ movie.imdb_id }}</span>
+    <span class="badge badge-primary">{{ movie.tmdb_id }}</span>
+{% endblock %}

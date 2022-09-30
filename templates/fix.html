@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Fix "{{ movie['title'] }} ({{movie['year']}})" {% endblock %}</h1>
+
+<form method="post">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" name="title" placeholder="Movie title"
+               class="form-control"
+               value="{{ request.form['title'] or movie['title'] }}">
+    </div>
+
+    <div class="form-group">
+        <label for="year">Year</label>
+        <input type="text" name="year" placeholder="Movie year"
+               class="form-control"
+               value="{{ request.form['year'] or movie['year'] }}">
+    </div>
+
+    <div class="form-group">
+        <label for="imdb_id">IMDB ID</label>
+        <input type="text" name="imdb_id" placeholder="Movie IMDB ID"
+               class="form-control"
+               value="{{ request.form['imdb_id'] or movie['imdb_id'] }}">
+    </div>
+
+    <div class="form-group">
+        <label for="tmdb_id">TMDB ID</label>
+        <input type="text" name="tmdb_id" placeholder="Movie TMDB ID"
+               class="form-control"
+               value="{{ request.form['tmdb_id'] or movie['tmdb_id'] }}">
+
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div> 
+
+    <div class="form-group">
+        <button type="reset" class="btn btn-primary">Reset</button>
+    
+    </div> 
+
+</form>
+
+<script>
+    // too lazy to to figure out a better way to do this, probably need some framework 
+    function fillform(value, idx) {
+        const nodelist = document.querySelectorAll('.form-group');
+        console.log(nodelist[idx].children[1].value = value);
+    }
+</script>
+
+{% for search in searches %}
+    <h2>{{ search.title }} ({{ search.year }}) </h2>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.title }}', 0)">{{ search.title }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.year }}', 1)">{{ search.year }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.imdb_id }}', 2)">{{ search.imdb_id }}</button>
+    <button type="button" class="badge badge-primary" onclick="fillform('{{ search.tmdb_id }}', 3)">{{ search.tmdb_id }}</button>
+    <h3>{{ search.original_title if search.original_title is not none }}
+        {{ search.release_date if search.release_date is not none }}
+        {{ search.original_language if search.original_language is not none }}
+    </h3>
+    <img src={{ search.poster_path }} alt="No Poster available" width="104" height="142">
+       
+    <hr>
+{% endfor %}
+
+{% endblock %}

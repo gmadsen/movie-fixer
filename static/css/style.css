@@ -4,3 +4,31 @@ h1 {
     text-align: center;
     padding: 10px;
 }
+
+
+#box  {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    padding: 1px;
+    margin: 0 auto;
+    color: #000000;
+    font-family: arial, sans-serif;
+    border: 5px;
+    border-color: rgb(160, 158, 158);
+    border-style: solid;
+}
+
+.stat_col_1 {
+    background-color: pink; 
+    text-align: center;
+    border: 2px solid black;
+    width: 50%;
+}
+
+.stat_col_2 {
+    background-color: #a0e9ed; 
+    text-align: center;
+    border: 2px solid black;
+    width: 50%;
+}

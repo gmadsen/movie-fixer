@@ -1,14 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} Welcome to FlaskerApp {% endblock %}</h1>
-    {% for post in posts %}
-        <a href="{{ url_for('post', post_id=post['id']) }}">
-            <h2>{{ post.title }}</h2>
-        </a>
-        <span class="badge badge-primary">{{ post.created }}</span>
-        <a href="{{ url_for('edit', post_id=post['id']) }}">
-            <span class="badge badge-warning">Edit</span>
+    <h1>{% block title %} Welcome to GareFixer {% endblock %}</h1>
+    <a href="{{ url_for('download_file') }}">Download Exportable List</a>
+    <hr>
+    {% for movie in movies %}
+        <a href="{{ url_for('movie', movie_id=movie['id']) }}">
+            <h2>{{ movie.title }} ({{ movie.year }}) {{ movie.imdb_id }} {{ movie.tmdb_id }}</h2>
         </a>
         <hr>
         {% endfor %}

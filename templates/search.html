@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Fix "{{ movie['title'] }} ({{movie['year']}})" {% endblock %}</h1>
+<hr>
+<form method="post">
+    <div class=>
+        <button type="submit" name="subject" value="search" class="btn btn-primary">Ask for Help</button>
+    </div> 
+</form>
+
+{% endblock %}

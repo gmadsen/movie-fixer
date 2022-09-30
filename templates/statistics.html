@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Statistics {% endblock %}</h1>
+
+    <div id="box">
+        <div class=stat_col_1>Total # of Movies in Collection:</div>
+        <div class=stat_col_2>{{ stats.total_movies }}</div>
+    </div>
+
+    <div id="box">
+        <div class=stat_col_1>Total # of Movies Missing IMDB ID:</div>
+        <div class=stat_col_2>{{ stats.total_movies_missing_imdb_id }}</div>
+    </div>
+
+    <div id="box">
+        <div class=stat_col_1>Total # of Movies Missing TMDB ID:</div>
+        <div class=stat_col_2>{{ stats.total_movies_missing_tmdb_id }}</div>
+    </div>
+
+    <div id="box">
+        <div class=stat_col_1>Total # of Movies Missing Both IDs:</div>
+        <div class=stat_col_2>{{ stats.total_movies_missing_both_ids }}</div>
+    </div>
+
+    <div id="box">
+        <div class=stat_col_1>Total # of Movies to Review:</div>
+        <div class=stat_col_2>{{ stats.total_reviewable_movies }}</div>
+    </div>
+    <div id="box">
+        <div class=stat_col_1>Total # of Responses in Collection:</div>
+        <div class=stat_col_2>{{ stats.total_responses }}</div>
+    </div>
+    <div id="box">
+        <div class=stat_col_1>Total # of Searches in Collection:</div>
+        <div class=stat_col_2>{{ stats.total_searches }}</div>
+    </div>
+
+    <hr>
+    <h2>Tools</h2>
+
+    <form method="post">
+        <div class>
+                <button type="submit" name="subject" value="match" class="btn btn-primary"
+                    onclick="return confirm('Are you sure you want to attempt to auto validate all movies?')">Auto Associate</button>
+        </div> 
+
+        <div class>
+            <button type="submit" name="subject" value="query" class="btn btn-primary"
+                onclick="return confirm('Are you sure you want to call and attach queries for all movies that arent valid?')">Query All</button>
+        </div> 
+
+        <div class>
+            <button type="submit" name="subject" value="reset" class="btn btn-primary"
+                onclick="return confirm('DANGER VERWARNUG!!!!!! Are you want to reset all Tables??')">HARD RESET</button>
+        </div> 
+
+        <div class>
+            <button type="submit" name="subject" value="export" class="btn btn-primary"
+                onclick="return confirm('DANGER VERWARNUG!!!!!! Are you want to reset all Tables??')">Export Movies</button>
+        </div> 
+
+    </form>
+
+
+
+{% endblock %}
