@@ -31,7 +31,7 @@ def invalid():
 
 @app.route('/movie/<int:movie_id>')
 def movie(movie_id):
-    return render_template('movie.html', movie=get_movie(movie_id))
+    return render_template('movie.html', movie=get_movie(movie_id)[0])
 
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
@@ -50,16 +50,13 @@ def stats():
 @app.route('/fix/<int:movie_id>', methods=['GET', 'POST'])
 def fix(movie_id):
     if request.method == 'POST':
-        new_movie = mi.Movie.from_tuple(request.form)
-        if not new_movie.isFullyDefined():
-            flash('Please enter a title, year, and imdb_id/tmdb_id', 'danger')
+        if attempt_movie_update_from_form(movie_id, request.form):
+            flash('Movie updated!')
+            return redirect(url_for('fix', movie_id=get_movies_with_valid_searches()[0]['id']))
         else:
-            update_movie_to_valid(movie_id, new_movie) 
-            flash('Movie updated successfully', 'success')
-            # seems a waste, but im not sure of a better way to get next movie id
-            next_movie = get_movies_with_valid_searches()[0]
-            return redirect(url_for('fix', movie_id=next_movie['id']))
-    return render_template('fix.html', movie=get_movie(movie_id), searches=get_searches_by_movie_id(movie_id))
+            flash('Please enter a title, year, and imdb_id/tmdb_id', 'danger')
+    return render_template('fix.html', movie=get_movie(movie_id)[0], searches=get_searches_by_movie_id(movie_id))
+
 
 @app.route('/search/<int:movie_id>', methods=['GET', 'POST'])
 def search(movie_id): 
@@ -68,4 +65,4 @@ def search(movie_id):
         if action == 'search':
             tmdb_search(movie_id)
             return redirect(url_for('invalid'))
-    return render_template('search.html', movie=get_movie(movie_id))
+    return render_template('search.html', movie=get_movie(movie_id)[0])

@@ -13,10 +13,18 @@ class Movie:
         self.tmdb_response = tmdb_response 
 
     @classmethod
-    def from_tuple(cls, form):
+    def from_query(cls, row_list):
+        form = row_list[0]
         tmdb_id = form['tmdb_id'] if form['tmdb_id'] is not None  else ""
         imdb_id = form['imdb_id'] if form['imdb_id'] is not None  else ""
         return cls(form['title'], form['year'], imdb_id, tmdb_id)
+
+    @classmethod
+    def from_form(cls, form):
+        tmdb_id = form['tmdb_id'] if form['tmdb_id'] is not None  else ""
+        imdb_id = form['imdb_id'] if form['imdb_id'] is not None  else ""
+        return cls(form['title'], form['year'], imdb_id, tmdb_id)
+    
 
     def is_null_value(self, value):
         return value is None or value == "" or value == "None"

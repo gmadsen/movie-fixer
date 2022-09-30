@@ -1,6 +1,7 @@
 import MoviesDB as mdb
+import MovieInterface as mi
 
-
+# wrap all db accesses with explicit db opening/closing and function validity checking
 def safe(func):
     def db_call(*args, **kwargs):
         db = mdb.MoviesDB()
@@ -10,6 +11,9 @@ def safe(func):
             abort(404)
         return thing
     return db_call 
+
+## for all queries
+safe_query = safe(mdb.MoviesDB.query)
 
 get_movie = safe(mdb.MoviesDB.getMovie)
 get_all_movies = safe(mdb.MoviesDB.getAllMovies)
@@ -23,3 +27,46 @@ hard_db_reset = safe(mdb.MoviesDB.hardDBReset)
 load_original_data = safe(mdb.MoviesDB.loadOriginalData)
 tmdb_search = safe(mdb.MoviesDB.addTmdbMovieQueryToMovie)
 get_valid_movies = safe(mdb.MoviesDB.getValidMovies)
+
+## helpers
+def attempt_movie_update_from_form(movie_id, form):
+    new_movie = mi.Movie.from_form(form)
+    if not new_movie.isFullyDefined():
+        return False
+    update_movie_to_valid(movie_id, new_movie) 
+    return True
+
+
+## SQL Commands ##
+
+GET_MOVIE_BY_ID = """"SELECT * FROM movies WHERE id = ?;""" 
+
+GET_ALL_MOVIES = """SELECT * FROM movies;"""
+
+GET_MOVIES_WITH_NO_IMDB_ID = """SELECT * FROM movies WHERE imdb_id IS NULL;"""
+
+GET_INVALID_MOVIES = (""" SELECT * FROM Movies 
+                    LEFT OUTER JOIN Responses
+                    ON Movies.id = Responses.from_movies_id
+                    WHERE Responses.from_movies_id IS NULL
+                    AND Movies.imdb_id = ''
+                    AND Movies.tmdb_id = ''
+                    """)
+
+GET_VALID_MOVIES = (""" SELECT * FROM Movies 
+                    WHERE Movies.imdb_id != ''
+                    OR Movies.tmdb_id != ''
+                    """)
+
+GET_MOVIES_WITH_VALID_SEARCHES = ("""
+                    SELECT * 
+                    FROM Movies INNER JOIN Responses 
+                    ON Movies.id = Responses.from_movies_id
+                    ORDER BY Movies.title
+                    """)
+
+GET_SEARCHES_BY_MOVIE_ID = ("""
+                    SELECT * FROM Searches 
+                    WHERE from_responses_id 
+                    IN (SELECT id FROM Responses WHERE from_movies_id = ?)
+                    """)

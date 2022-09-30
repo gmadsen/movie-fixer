@@ -106,7 +106,7 @@ class MoviesDB:
         if self.conn is None:
             return
         try:
-            movie = mi.Movie.from_tuple(self.getMovie(movie_id))
+            movie = mi.Movie.from_query(self.getMovie(movie_id))
             movie = TmdbAPI.updateMovieWithMovieQuery(movie)
             print("now I have stuff, ", movie.tmdb_response.total_results)
         except Exception as e:
@@ -128,16 +128,24 @@ class MoviesDB:
             print(e)
             self.conn.rollback()
             return False
-        
+       
+       
+    def query(self, sql_string, *args):
+        if self.conn is None:
+            return
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        cur.execute(sql_string, args) 
+        return cur.fetchall()
+
+ 
     def getMovie(self, movie_id):
         if self.conn is None:
-            print("DB is not connected")
             return
         self.conn.row_factory = sqlite3.Row
         cur = self.conn.cursor()
         cur.execute("""SELECT * FROM Movies WHERE id=?""", (movie_id,))
-        movie = cur.fetchone()
-        return movie
+        return cur.fetchall()
 
     def getAllMovies(self):
         if self.conn is None:
@@ -246,13 +254,13 @@ class MoviesDB:
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT Movies.id, Movies.title, Movies.year, Searches.imdb_id, Searches.tmdb_id  
+            SELECT Movies.id, Searches.title, Movies.year, Searches.imdb_id, Searches.tmdb_id  
             FROM Movies
             INNER JOIN Responses ON 
             Movies.id = Responses.from_movies_id
             INNER JOIN Searches ON 
             Responses.id = Searches.from_responses_id
-            WHERE Movies.title = Searches.title
+            WHERE UPPER(Movies.title) = UPPER(Searches.title)
             AND Movies.year = Searches.year
                     """)
         return cur.fetchall()
