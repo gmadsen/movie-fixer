@@ -62,6 +62,11 @@ class MoviesDB:
 
     def loadOriginalData(self):
         self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_1_responded.json"))
+        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_2_responded.json"))
+        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_3_responded.json"))
+        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_4_responded.json"))
+        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_5_responded.json"))
+        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_6_responded.json"))
 ###########################################################################
 ###########################################################################
         
@@ -187,6 +192,8 @@ class MoviesDB:
         if self.conn is None:
             return False
         movies = self.query(bc.GET_MOVIES_WITH_CONFIDENT_MATCH)
+        print("i am trying to auto match")
+        print(len(movies), "len of movies")
         for movie in movies:
             if (movie['imdb_id'] != '' or movie['tmdb_id'] != ''):
                 mi_movie = mi.Movie(movie['title'], movie['year'], movie['imdb_id'], movie['tmdb_id'])

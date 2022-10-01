@@ -101,6 +101,16 @@ get_movies_with_valid_searches = safe(make_query(GET_MOVIES_WITH_VALID_SEARCHES)
 get_invalid_movies = safe(make_query(GET_INVALID_MOVIES))
 get_valid_movies = safe(make_query(GET_VALID_MOVIES))
 
+###################################################################################################
+################################### Main Functions #################################################
+
+update_movie_to_valid = safe(mdb.MoviesDB.updateMovieToValid)
+remove_associated_searches = safe(mdb.MoviesDB.removeAssociatedSearches)
+auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
+hard_db_reset = safe(mdb.MoviesDB.hardDBReset)
+load_original_data = safe(mdb.MoviesDB.loadOriginalData)
+create_transaction_backup = safe(mdb.MoviesDB.createTransactionBackup)
+tmdb_search = safe(mdb.MoviesDB.addTmdbMovieQueryToMovie)
 
 
 ##################################################################################################
@@ -141,16 +151,6 @@ class Stats:
         stats.total_valid_movies = db.query(TOTAL_VALID_MOVIE_COUNT)[0][0]
         return stats
    
-###################################################################################################
-################################### Main Functions #################################################
-
-update_movie_to_valid = safe(mdb.MoviesDB.updateMovieToValid)
-remove_associated_searches = safe(mdb.MoviesDB.removeAssociatedSearches)
-auto_match_movies = safe(mdb.MoviesDB.autoMatchMovies)
-hard_db_reset = safe(mdb.MoviesDB.hardDBReset)
-load_original_data = safe(mdb.MoviesDB.loadOriginalData)
-create_transaction_backup = safe(mdb.MoviesDB.createTransactionBackup)
-tmdb_search = safe(mdb.MoviesDB.addTmdbMovieQueryToMovie)
 get_stats = safe(Stats.from_db)
 
 
