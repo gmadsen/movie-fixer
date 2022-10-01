@@ -1,7 +1,7 @@
 import sqlite3
 import io
 import MovieInterface as mi 
-import TmdbAPI
+import TmdbApi
 import ImdbAPI
 import BackendCaller as bc
 
@@ -62,11 +62,11 @@ class MoviesDB:
 
     def loadOriginalData(self):
         self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_1_responded.json"))
-        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_2_responded.json"))
-        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_3_responded.json"))
-        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_4_responded.json"))
-        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_5_responded.json"))
-        self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_6_responded.json"))
+        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_2_responded.json"))
+        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_3_responded.json"))
+        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_4_responded.json"))
+        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_5_responded.json"))
+        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_6_responded.json"))
 ###########################################################################
 ###########################################################################
         
@@ -161,13 +161,11 @@ class MoviesDB:
             return
         try:
             movie = mi.Movie.from_query(self.query(bc.GET_MOVIE_BY_ID, movie_id)) #    getMovie(movie_id))
-            movie = TmdbAPI.updateMovieWithMovieQuery(movie)
+            movie = TmdbApi.updateMovieWithApiCall(movie)
             print("now I have stuff, ", movie.tmdb_response.total_results)
         except Exception as e:
             print(e)
             return False
-# TODO this needs to all be under the same transaction, which fallback
-
         cur = self.conn.cursor()
         try:
             cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "tmdb", movie.tmdb_response.total_results))
@@ -192,8 +190,6 @@ class MoviesDB:
         if self.conn is None:
             return False
         movies = self.query(bc.GET_MOVIES_WITH_CONFIDENT_MATCH)
-        print("i am trying to auto match")
-        print(len(movies), "len of movies")
         for movie in movies:
             if (movie['imdb_id'] != '' or movie['tmdb_id'] != ''):
                 mi_movie = mi.Movie(movie['title'], movie['year'], movie['imdb_id'], movie['tmdb_id'])
