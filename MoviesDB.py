@@ -37,7 +37,6 @@ class MoviesDB:
         except Exception as e: 
             print(e, ' Backup Failed!')
 
-
     def createProjectTables(self):
         if self.conn is None:
             return
