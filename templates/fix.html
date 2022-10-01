@@ -30,34 +30,29 @@
         <input type="text" name="tmdb_id" placeholder="Movie TMDB ID"
                class="form-control"
                value="{{ request.form['tmdb_id'] or movie['tmdb_id'] }}">
-
     </div>
+
     <div class="form-group">
         <button type="submit" class="btn btn-primary">Submit</button>
     </div> 
 
     <div class="form-group">
         <button type="reset" class="btn btn-primary">Reset</button>
-    
     </div> 
-
 </form>
 
+<form method="post">
+    <div class>
+            <button type="submit" name="local_action" value="remove_search" class="btn btn-primary"
+                onclick="return confirm('Are you sure you want to remove all associated searches?')">Remove Associated Searches</button>
+    </div> 
+</form>
 <script>
-
-    // too lazy to to figure out a better way to do this, probably need some framework 
     function fillform(value, idx) {
         const nodelist = document.querySelectorAll('.form-group');
-        console.log("I am being entered");
         if (idx == 0) {
             value = value.replace(/^"(.*)"$/, '$1');
         }
-        console.log("value is: " + value);
-        console.log(value);
-        console.log(nodelist[0].children[1].value);
-        console.log(nodelist[1].children[1].value);
-        console.log(nodelist[2].children[1].value);
-        console.log("\n\n");
         nodelist[idx].children[1].value = value;
     }
 </script>

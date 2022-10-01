@@ -34,9 +34,9 @@ class Movie:
         is_year = not self.is_null_value(self.year) 
         is_imdb_id = not self.is_null_value(self.imdb_id) 
         is_tmdb_id = not self.is_null_value(self.tmdb_id) 
-        print(f"is_title: {is_title}, is_year: {is_year}, is_imdb_id: {is_imdb_id}, is_tmdb_id: {is_tmdb_id}")
-        print(f"imdb_id: {self.imdb_id}, tmdb_id: {self.tmdb_id}")
-        print("tmdb type: ", type(self.tmdb_id), "is None: ", self.tmdb_id is None, "is empty: ", self.tmdb_id == "")
+        # print(f"is_title: {is_title}, is_year: {is_year}, is_imdb_id: {is_imdb_id}, is_tmdb_id: {is_tmdb_id}")
+        # print(f"imdb_id: {self.imdb_id}, tmdb_id: {self.tmdb_id}")
+        # print("tmdb type: ", type(self.tmdb_id), "is None: ", self.tmdb_id is None, "is empty: ", self.tmdb_id == "")
 
         return is_title and is_year and (is_imdb_id or is_tmdb_id) 
         

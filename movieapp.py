@@ -43,14 +43,23 @@ def movie(movie_id):
 @app.route('/stats', methods=['GET', 'POST'])
 def stats():
     if request.method == 'POST':
-        user_power_button_handler(request.form.getlist('subject')[0])
-        return redirect(url_for('stats'))
+        try:
+            user_power_button_handler(request.form['global_action'])
+        except:
+            pass
+        finally:
+            return redirect(url_for('index'))
     return render_template('statistics.html', stats=get_stats())
 
 @app.route('/fix/<int:movie_id>', methods=['GET', 'POST'])
 def fix(movie_id):
     if request.method == 'POST':
-        if attempt_movie_update_from_form(movie_id, request.form):
+        print(request.form)
+        if 'local_action' in request.form.keys():
+            if request.form['local_action'] == 'remove_search':
+                remove_associated_searches(movie_id)
+                return redirect(url_for('index'))
+        elif attempt_movie_update_from_form(movie_id, request.form):
             flash('Movie updated!')
             return redirect(url_for('fix', movie_id=get_movies_with_valid_searches()[0]['id']))
         else:

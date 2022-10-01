@@ -9,6 +9,11 @@
     </div>
 
     <div id="box">
+        <div class=stat_col_1>Total # of Valid Movies:</div>
+        <div class=stat_col_2>{{ stats.total_valid_movies }}</div>
+    </div>
+
+    <div id="box">
         <div class=stat_col_1>Total # of Movies Missing IMDB ID:</div>
         <div class=stat_col_2>{{ stats.total_movies_missing_imdb_id }}</div>
     </div>
@@ -46,18 +51,22 @@
         </div> 
 
         <div class>
-            <button type="submit" name="subject" value="query" class="btn btn-primary"
+            <button type="submit" name="global_action" value="query" class="btn btn-primary"
                 onclick="return confirm('Are you sure you want to call and attach queries for all movies that arent valid?')">Query All</button>
         </div> 
 
         <div class>
-            <button type="submit" name="subject" value="reset" class="btn btn-primary"
+            <button type="submit" name="global_action" value="reset" class="btn btn-primary"
                 onclick="return confirm('DANGER VERWARNUG!!!!!! Are you want to reset all Tables??')">HARD RESET</button>
         </div> 
 
-        <div class>
-            <button type="submit" name="subject" value="export" class="btn btn-primary"
+        <!-- <div class>
+            <button type="submit" name="global_action" value="export" class="btn btn-primary"
                 onclick="return confirm('DANGER VERWARNUG!!!!!! Are you want to reset all Tables??')">Export Movies</button>
+        </div>  -->
+        <div class>
+            <button type="submit" name="global_action" value="backup" class="btn btn-primary"
+                onclick="return confirm('Will overwrite backup transaction, are you sure?')">Backup DB</button>
         </div> 
 
     </form>
