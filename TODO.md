@@ -16,3 +16,5 @@ Movie library metadata fixer
 - [x] make a way to backup database and restore it
 - [ ] refactor data modifiers to be more generic, like the query modifiers
 - [ ] implement thread pool/asyncio for tmdb searches!
+- [ ] refactor data access
+- [x] app is now async and on quart!
