@@ -1,7 +1,9 @@
 """flask routing logic"""
+from pathlib import Path
+import os
 from dataclasses import dataclass
-import movie_db as mdb
-import movie_interface as mi
+from . import movie_db as mdb
+from . import movie_interface as mi
 
 ############### routing logic ############################
 def attempt_movie_update_from_form(movie_id, form):

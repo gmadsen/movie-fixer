@@ -4,8 +4,8 @@ from quart import Quart, render_template, request, url_for, flash, redirect, sen
 from werkzeug.exceptions import abort
 from jinja2 import FileSystemLoader, Environment, select_autoescape, PackageLoader
 
-import backend_caller as bc
-import exporter
+from . import backend_caller as bc
+from . import exporter
 
 # env = Environment(PackageLoader("movieapp"), autoescape=select_autoescape(
 #     enabled_extensions=('html', 'xml'),

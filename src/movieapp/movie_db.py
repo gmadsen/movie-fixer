@@ -1,15 +1,16 @@
 """ Module of primary interface to movie database """
-
+from pathlib import Path
 import sqlite3
 import io
-import movie_interface as mi
-import tmdb_api
-import imdb_api
-import backend_caller as bc
+from . import movie_interface as mi
+from . import tmdb_api
+from . import imdb_api
+from . import backend_caller as bc
 
+PATH = Path(__file__).parent
 class MovieDB:
     """ Primary class to construct, query, and modify movie database """
-    def __init__(self, database='data/movies.db', build_tables=False):
+    def __init__(self, database=PATH/'data/movies.db', build_tables=False):
         self.conn = None
         try:
             self.conn = sqlite3.connect(database)
@@ -33,9 +34,9 @@ class MovieDB:
         if self.conn is None:
             return
         try:
-            with io.open('data/backupdatabase_dump.sql', 'w') as db_dump:
+            with io.open(PATH/'data/backupdatabase_dump.sql', 'w') as db_dump:
                 for line in self.conn.iterdump():
-                    db_dump.write('%s\n' % line)
+                    db_dump.write(f'{line}\n')
             print(' Backup performed successfully!')
             print(' Data Saved as backupdatabase_dump.sql')
         except Exception as e:
@@ -45,7 +46,7 @@ class MovieDB:
         """ make tables """
         if self.conn is None:
             return
-        with open('moviedb_schema.sql') as dbfile:
+        with open(PATH/'moviedb_schema.sql') as dbfile:
             self.conn.executescript(dbfile.read())
         self.conn.commit()
 
@@ -70,7 +71,7 @@ class MovieDB:
     def load_original_data(self):
         """load the original data in /data"""
         self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(
-            "data/top_1000_part_1_responded.json"
+            PATH/"data/top_1000_part_1_responded.json"
             )
         )
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_2_responded.json"))

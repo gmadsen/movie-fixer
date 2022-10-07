@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 from io import StringIO
 import requests
-from movie_interface import Movie
+from .movie_interface import Movie
 
 URL = "https://movie-database-alternative.p.rapidapi.com/"
 HEADERS = {
