@@ -511,6 +511,7 @@ CREATE TABLE Responses (
             total_results INTEGER,
             FOREIGN KEY (from_movies_id) REFERENCES Movies(id)
         );
+INSERT INTO "Responses" VALUES(111,140,'imdb',1);
 INSERT INTO "Responses" VALUES(182,230,'imdb',2);
 INSERT INTO "Responses" VALUES(219,283,'imdb',1);
 INSERT INTO "Responses" VALUES(243,313,'imdb',45);
@@ -533,6 +534,7 @@ CREATE TABLE Searches (
             poster_path TEXT,
             FOREIGN KEY (from_responses_id) REFERENCES Responses(id)
         );
+INSERT INTO "Searches" VALUES(180,111,'Anvil: The Story of Anvil',2008,NULL,NULL,NULL,'tt1157605',NULL,'https://m.media-amazon.com/images/M/MV5BMTQ0NjAzMzMxM15BMl5BanBnXkFtZTcwMzEzNzQ0Mg@@._V1_SX300.jpg');
 INSERT INTO "Searches" VALUES(328,182,'Home Run: Baseball in the Movies',1994,NULL,NULL,NULL,'tt0142374',NULL,'N/A');
 INSERT INTO "Searches" VALUES(329,182,'Let''s Play Baseball',1994,NULL,NULL,NULL,'tt0443754',NULL,'N/A');
 INSERT INTO "Searches" VALUES(391,219,'Tang shan da xiong (The Big Boss) Tebie',1971,NULL,NULL,NULL,'tt9471076',NULL,'N/A');

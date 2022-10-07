@@ -69,7 +69,10 @@ class MovieDB:
 
     def load_original_data(self):
         """load the original data in /data"""
-        self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies("data/top_1000_part_1_responded.json"))
+        self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(
+            "data/top_1000_part_1_responded.json"
+            )
+        )
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_2_responded.json"))
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_3_responded.json"))
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_4_responded.json"))

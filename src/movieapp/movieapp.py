@@ -7,25 +7,25 @@ from jinja2 import FileSystemLoader, Environment, select_autoescape, PackageLoad
 import backend_caller as bc
 import exporter
 
-env = Environment(PackageLoader("movieapp"), autoescape=select_autoescape(
-    enabled_extensions=('html', 'xml'),
-    default_for_string=True,
-))
+# env = Environment(PackageLoader("movieapp"), autoescape=select_autoescape(
+#     enabled_extensions=('html', 'xml'),
+#     default_for_string=True,
+# ))
 
 
-app = Quart(__name__)
-app.config['SECRET_KEY'] = 'mysecretkey'
+MOVIE_APP = Quart(__name__)
+MOVIE_APP.config['SECRET_KEY'] = 'mysecretkey'
 
 loader = FileSystemLoader("templates")
 
 # Routes #
-@app.route('/')
+@MOVIE_APP.route('/')
 async def index():
     """homepage"""
     return await render_template('index.html', movies=bc.get_all_movies())
 
 
-@app.route('/download')
+@MOVIE_APP.route('/download')
 async def download_file():
     """route to download csv file of movie list"""
     movies = bc.get_valid_movies()
@@ -33,25 +33,25 @@ async def download_file():
     return await send_file(csvfile.name, download_name='movies.csv', as_attachment=True, mimetype='text/csv')
 
 
-@app.route('/review')
+@MOVIE_APP.route('/review')
 async def review():
     """review route"""
     return await render_template('review.html', movies=bc.get_movies_with_valid_searches())
 
 
-@app.route('/invalid')
+@MOVIE_APP.route('/invalid')
 async def invalid():
     """invalid route"""
     return await render_template('invalid.html', invalid_movies=bc.get_invalid_movies())
 
 
-@app.route('/movie/<int:movie_id>')
+@MOVIE_APP.route('/movie/<int:movie_id>')
 async def movie(movie_id):
     """movie/id route"""
     return await render_template('movie.html', movie=bc.get_movie(movie_id)[0])
 
 
-@app.route('/stats', methods=['GET', 'POST'])
+@MOVIE_APP.route('/stats', methods=['GET', 'POST'])
 async def stats():
     """stats route"""
     if request.method == 'POST':
@@ -65,7 +65,7 @@ async def stats():
     return await render_template('statistics.html', stats=bc.get_stats())
 
 
-@app.route('/fix/<int:movie_id>', methods=['GET', 'POST'])
+@MOVIE_APP.route('/fix/<int:movie_id>', methods=['GET', 'POST'])
 async def fix(movie_id):
     """fix route"""
     if request.method == 'POST':
@@ -82,7 +82,7 @@ async def fix(movie_id):
     return await render_template('fix.html', movie=bc.get_movie(movie_id)[0], searches=bc.get_searches_by_movie_id(movie_id))
 
 
-@app.route('/search/<int:movie_id>', methods=['GET', 'POST'])
+@MOVIE_APP.route('/search/<int:movie_id>', methods=['GET', 'POST'])
 async def search(movie_id):
     """route for search"""
     if request.method == 'POST':
@@ -94,4 +94,4 @@ async def search(movie_id):
     return await render_template('search.html', movie=bc.get_movie(movie_id)[0])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    MOVIE_APP.run()
