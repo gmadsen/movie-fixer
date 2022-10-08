@@ -7,10 +7,16 @@ from . import tmdb_api
 from . import imdb_api
 from . sql_transactions import readers as sqlr
 
-PATH = Path(__file__).parent
+FILE_DIR = Path(__file__).parent
+SCHEMA_PATH = Path(__file__).parent/"moviedb_schema.sql"
+DB_PATH = Path(__file__).parent/"data/movies.db"
+BUILD_DATA_PATH_0 = Path(__file__).parent/"data/top_1000_part_1_responded"
+DATA_PATHS = [BUILD_DATA_PATH_0]
+BACKUP_PATH = DB_PATH.parent/"backup.sql"
+
 class MovieDB:
     """ Primary class to construct, query, and modify movie database """
-    def __init__(self, database=PATH/'data/movies.db', build_tables=False, debug_data=None):
+    def __init__(self, database=DB_PATH):
         self.conn = None
         try:
             self.conn = sqlite3.connect(database)
@@ -18,13 +24,6 @@ class MovieDB:
             print(booboo)
             self.conn.close()
             self.conn = None
-        else:
-            if self.conn is not None and build_tables:
-                self.create_project_tables()
-                if debug_data is not None:
-                    self.load_debug_data(debug_data)
-                else:
-                    self.load_original_data()
     def __del__(self):
         if self.conn is not None:
             self.conn.close()
@@ -32,12 +31,12 @@ class MovieDB:
 
 ########  Internal State and Maintenance ##################################
 
-    def create_transaction_backup(self):
+    def create_transaction_backup(self, path=BACKUP_PATH):
         """ make a sql cmd complete list as backup """
         if self.conn is None:
             return
         try:
-            with io.open(PATH/'data/backupdatabase_dump.sql', 'w') as db_dump:
+            with io.open(path, 'w') as db_dump:
                 for line in self.conn.iterdump():
                     db_dump.write(f'{line}\n')
             print(' Backup performed successfully!')
@@ -49,7 +48,7 @@ class MovieDB:
         """ make tables """
         if self.conn is None:
             return
-        with open(PATH/'moviedb_schema.sql') as dbfile:
+        with open(SCHEMA_PATH) as dbfile:
             self.conn.executescript(dbfile.read())
         self.conn.commit()
 
@@ -59,36 +58,30 @@ class MovieDB:
             self.conn.close()
             self.conn = None
 
-    def hard_db_reset(self):
-        """ reset all data and reload tables"""
-        if self.conn is None:
-            return
+    # def hard_db_reset(self, data_paths=DATA_PATHS):
+    #     """ reset all data and reload tables"""
+    #     if self.conn is None:
+    #         return
+    #     try:
+    #         self.create_project_tables()
+    #         self.load_data()
+    #         self.conn.commit()
+    #     except Exception as e:
+    #         print(e)
+    #         self.conn.rollback()
+
+    def load_data_paths(self, data_paths=DATA_PATHS):
+        """load data"""
         try:
-            self.create_project_tables()
-            self.load_original_data()
+            for dpath in data_paths:
+                self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(dpath)
+            )
             self.conn.commit()
         except Exception as e:
             print(e)
             self.conn.rollback()
 
-    def load_original_data(self):
-        """load the original data in /data"""
-        self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(
-            PATH/"data/top_1000_part_1_responded.json"
-            )
-        )
-        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_2_responded.json"))
-        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_3_responded.json"))
-        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_4_responded.json"))
-        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_5_responded.json"))
-        # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_6_responded.json"))
-
-    def load_debug_data(self, path):
-        """load the original data in /data"""
-        self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(path))
 ###########################################################################
-###########################################################################
-
 
 
 ###########################################################################
@@ -210,9 +203,9 @@ class MovieDB:
 
 
     def auto_match_movies(self):
-        ''' Query the database for all movies that do not have a valid imdb_id and tmdb_id, and if they
-            have a search result that matches the title and year, then update the movie with the search result
-            and throw away the other search results.
+        ''' Query the database for all movies that do not have a valid imdb_id and tmdb_id, and if
+            they have a search result that matches the title and year, then update the movie with
+            the search result and throw away the other search results.
         '''
         if self.conn is None:
             raise Exception("no connection to database")
