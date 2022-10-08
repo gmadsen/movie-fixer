@@ -1,3 +1,4 @@
+from unittest import AsyncMock
 import pytest
 import pytest_asyncio
 from  movieapp.movieapp import MOVIE_APP as app
