@@ -5,12 +5,12 @@ import io
 from . import movie_interface as mi
 from . import tmdb_api
 from . import imdb_api
-from . import backend_caller as bc
+from . sql import readers as sqlr
 
 PATH = Path(__file__).parent
 class MovieDB:
     """ Primary class to construct, query, and modify movie database """
-    def __init__(self, database=PATH/'data/movies.db', build_tables=False):
+    def __init__(self, database=PATH/'data/movies.db', build_tables=False, debug_data=None):
         self.conn = None
         try:
             self.conn = sqlite3.connect(database)
@@ -21,7 +21,10 @@ class MovieDB:
         else:
             if self.conn is not None and build_tables:
                 self.create_project_tables()
-                self.load_original_data()
+                if debug_data is not None:
+                    self.load_debug_data(debug_data)
+                else:
+                    self.load_original_data()
     def __del__(self):
         if self.conn is not None:
             self.conn.close()
@@ -79,6 +82,10 @@ class MovieDB:
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_4_responded.json"))
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_5_responded.json"))
         # self.addMovies(ImdbAPI.convertAggregateImdbResponseFileToMovies("data/top_1000_part_6_responded.json"))
+
+    def load_debug_data(self, path):
+        """load the original data in /data"""
+        self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(path))
 ###########################################################################
 ###########################################################################
 
@@ -180,7 +187,7 @@ class MovieDB:
         if self.conn is None:
             raise Exception("no connection to database")
         try:
-            movie = mi.Movie.from_query(self.query(bc.GET_MOVIE_BY_ID, movie_id)) #    getMovie(movie_id))
+            movie = mi.Movie.from_query(self.query(st.GET_MOVIE_BY_ID, movie_id)) #    getMovie(movie_id))
             movie = tmdb_api.update_movie_with_api_call(movie)
             print("now I have stuff, ", movie.tmdb_response.total_results)
         except Exception as e:
@@ -209,7 +216,7 @@ class MovieDB:
         '''
         if self.conn is None:
             raise Exception("no connection to database")
-        movies = self.query(bc.GET_MOVIES_WITH_CONFIDENT_MATCH)
+        movies = self.query(st.GET_MOVIES_WITH_CONFIDENT_MATCH)
         for movie in movies:
             if (movie['imdb_id'] != '' or movie['tmdb_id'] != ''):
                 mi_movie = mi.Movie(movie['title'], movie['year'], movie['imdb_id'], movie['tmdb_id'])

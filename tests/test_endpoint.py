@@ -1,7 +1,8 @@
-from unittest import AsyncMock
+""" route endpoint tests"""
+from unittest.mock import AsyncMock
 import pytest
 import pytest_asyncio
-from  movieapp.movieapp import MOVIE_APP as app
+from movie_fixer.webapp import WEB_APP as app
 
 
 @pytest_asyncio.fixture(name='test_app')
