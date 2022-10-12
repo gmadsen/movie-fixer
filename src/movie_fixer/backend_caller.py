@@ -68,11 +68,14 @@ get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
 update_movie_to_valid = safe(mdb.MovieDB.update_movie_to_valid)
 remove_associated_searches = safe(mdb.MovieDB.remove_associated_searches)
 auto_match_movies = safe(mdb.MovieDB.auto_match_movies)
-hard_db_reset = safe(mdb.MovieDB.hard_db_reset)
-load_original_data = safe(mdb.MovieDB.load_build_data)
+load_original_data = safe(mdb.MovieDB.load_data_paths)
 create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
 tmdb_search = safe(mdb.MovieDB.add_tmdb_movie_query_to_movie)
 
+def hard_db_reset():
+    """reset all tables, fill with normal data"""
+    safe(mdb.MovieDB.create_project_tables)
+    safe(mdb.MovieDB.load_data_paths)
 
 ##################################################################################################
 ######################## Stats and Data Analysis Functions ########################################

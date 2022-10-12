@@ -3,44 +3,27 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 import pytest
 
-import movie.fixer.movie_db as mdb
-import movie.fixer.backend_caller as bc
+import movie_fixer.movie_db as mdb
+import movie_fixer.backend_caller as bc
 import movie_fixer.sql_transactions.readers as sr
 import movie_fixer.backend_caller
 
 PATH = Path(__file__).parent
+DB_PATH = PATH/"test.db"
+DATA_PATH = PATH/"test_data.json"
+DATA_PATHS = [DATA_PATH]
 
-@pytest.fixture(name = test_db)
-def _test_db():
-     return mdb.MovieDB(db=PATH/test.db, )
-
-@pytest
-def test_safe(func):
-    """ test wrap all backend"""
-    def dbase_call(*args, **kwargs):
-        dbase = mdb.MovieDB()
-        thing = func(dbase, *args, **kwargs)
-        dbase.close()
-        return thing
-    return dbase_call
-
-# TODO: figure out if I can remove build_tables, just have a check if db and tables exists, build if no
-def safe(db=None, func):
-    """ wrap all db accesses with explicit db opening/closing and function validity checking """
-    def dbase_call(*args, **kwargs):
-        dbase = mdb.MovieDB()
-        thing = func(dbase, *args, **kwargs)
-        dbase.close()
-        return thing
-    return dbase_call
+@pytest.fixture()
+def test_db():
+    """test data new db"""
+    db = mdb.MovieDB(database=DB_PATH)
+    db.create_project_tables()
+    db.load_data_paths(DATA_PATHS)
+    return db
 
 
 def test_queries(test_db):
     """ test db with fake data"""
-    # a = get
-    # local_db  = mdb.MovieDB(PATH/'test_db', build_tables=True, debug_data=PATH/'test_data.json')
-    # return local_db
-# class MovieDB:
-    # """ Primary class to construct, query, and modify movie database """
-    # def __init__(self, database=PATH/'data/movies.db', build_tables=False):
-        # self.conn = None
+    test_all_movies = test_db.query(sr.GET_ALL_MOVIES)
+    assert(len(test_all_movies)) == 55
+    assert(test_all_movies[0]['title']) == 'Free Wiley'

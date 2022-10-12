@@ -58,17 +58,6 @@ class MovieDB:
             self.conn.close()
             self.conn = None
 
-    # def hard_db_reset(self, data_paths=DATA_PATHS):
-    #     """ reset all data and reload tables"""
-    #     if self.conn is None:
-    #         return
-    #     try:
-    #         self.create_project_tables()
-    #         self.load_data()
-    #         self.conn.commit()
-    #     except Exception as e:
-    #         print(e)
-    #         self.conn.rollback()
 
     def load_data_paths(self, data_paths=DATA_PATHS):
         """load data"""
