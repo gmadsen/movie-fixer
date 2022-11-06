@@ -25,5 +25,5 @@ def test_db():
 def test_queries(test_db):
     """ test db with fake data"""
     test_all_movies = test_db.query(sr.GET_ALL_MOVIES)
-    assert(len(test_all_movies)) == 55
-    assert(test_all_movies[0]['title']) == 'Free Wiley'
+    assert(len(test_all_movies)) == 5
+    assert(test_all_movies[0]['title']) == '(500) Days of Summer'

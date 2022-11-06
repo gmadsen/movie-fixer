@@ -1,86 +1,13 @@
 """flask routing logic"""
 from dataclasses import dataclass
 from pathlib import Path
-import os
 from .sql_transactions import readers as sr
 from . import movie_db as mdb
 from . import movie_interface as mi
-
-############### routing logic ############################
-def attempt_movie_update_from_form(movie_id, form):
-    """ Update database with user defined info, will only be valid with an id"""
-    new_movie = mi.Movie.from_form(form)
-    if not new_movie.is_fully_defined():
-        return False
-    update_movie_to_valid(movie_id, new_movie)
-    return True
-
-
-def user_power_button_handler(action):
-    """ handles all put requests from power buttons"""
-    if action == 'match':
-        auto_match_movies()
-    elif action == 'query':
-        print("not implemented")
-        # query_all_invalids()
-    elif action == 'export':
-        print("not implemented")
-        # export_all_valids()
-    elif action == 'backup':
-        create_transaction_backup()
-    elif action == 'reset':
-        hard_db_reset()
-    else:
-        print("go fuck yourself")
-
-#######################################################################################
-########################### Database Commands and Queries #############################
-#TODO put harddb_reset hear
-
-def safe(func):
-    """ wrap all db accesses with explicit db opening/closing and function validity checking """
-    def dbase_call(*args, **kwargs):
-        dbase = mdb.MovieDB()
-        thing = func(dbase, *args, **kwargs)
-        dbase.close()
-        return thing
-    return dbase_call
-
-
-def make_query(sql_string):
-    """ make a query func of arbitrary args from its sql command """
-    def query_wrapper(dbase, *args):
-        return dbase.query(sql_string, *args)
-    return query_wrapper
-
-# DB queries
-get_movie = safe(make_query(sr.GET_MOVIE_BY_ID))
-get_all_movies = safe(make_query(sr.GET_ALL_MOVIES))
-get_searches_by_movie_id = safe(make_query(sr.GET_SEARCHES_BY_MOVIE_ID))
-get_movies_with_no_imdb_id = safe(make_query(sr.GET_MOVIES_WITH_NO_IMDB_ID))
-get_movies_with_valid_searches = safe(make_query(sr.GET_MOVIES_WITH_VALID_SEARCHES))
-get_invalid_movies = safe(make_query(sr.GET_INVALID_MOVIES))
-get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
-
-###################################################################################################
-################################### Main Functions #################################################
-
-update_movie_to_valid = safe(mdb.MovieDB.update_movie_to_valid)
-remove_associated_searches = safe(mdb.MovieDB.remove_associated_searches)
-auto_match_movies = safe(mdb.MovieDB.auto_match_movies)
-load_original_data = safe(mdb.MovieDB.load_data_paths)
-create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
-tmdb_search = safe(mdb.MovieDB.add_tmdb_movie_query_to_movie)
-
-def hard_db_reset():
-    """reset all tables, fill with normal data"""
-    safe(mdb.MovieDB.create_project_tables)
-    safe(mdb.MovieDB.load_data_paths)
+from . import tmdb_api
 
 ##################################################################################################
 ######################## Stats and Data Analysis Functions ########################################
-
-
 @dataclass
 class Stats:
     def __init__(self):
@@ -108,4 +35,88 @@ class Stats:
         return stats
 
 
+############### routing logic ############################
+def update_movie_from_form(movie_id, form):
+    """ Update database with user defined info, will only be valid with an id"""
+    new_movie = mi.Movie.from_form(form)
+    if not new_movie.is_fully_defined():
+        return False
+    update_movie(movie_id, new_movie)
+    remove_associated_searches(movie_id)
+    return True
+
+def update_movie_with_api_call(movie_id):
+    movie = mi.Movie.from_query(get_movie(movie_id))
+
+    print("before search: ", movie)
+    print("tmdb response: ", movie.tmdb_response)
+    movie = tmdb_api.update_movie_with_api_call(movie)
+    print("after search: ", movie)
+    print("tmdb response: ", movie.tmdb_response)
+    update_movie(movie_id, movie)
+    return True
+
+def user_power_button_handler(action):
+    """ handles all put requests from power buttons"""
+    if action == 'match':
+        auto_match_movies()
+    elif action == 'query':
+        print("not implemented")
+        # query_all_invalids()
+    elif action == 'export':
+        print("not implemented")
+        # export_all_valids()
+    elif action == 'backup':
+        create_transaction_backup()
+    elif action == 'reset':
+        hard_db_reset()
+    else:
+        print("go fuck yourself")
+
+#######################################################################################
+########################### Database Commands and Queries #############################
+
+def safe(func):
+    """ wrap all db accesses with explicit db opening/closing and function validity checking """
+    def dbase_call(*args, **kwargs):
+        dbase = mdb.MovieDB()
+        thing = func(dbase, *args, **kwargs)
+        dbase.close()
+        return thing
+    return dbase_call
+
+
+def make_query(sql_string):
+    """ make a query func of arbitrary args from its sql command """
+    def query_wrapper(dbase, *args):
+        return dbase.query(sql_string, *args)
+    return query_wrapper
+
+
+def hard_db_reset():
+    """reset all tables, fill with normal data"""
+    create_project_tables()
+    load_data_paths()
+
+# DB queries
+get_movie = safe(make_query(sr.GET_MOVIE_BY_ID))
+get_all_movies = safe(make_query(sr.GET_ALL_MOVIES))
+get_searches_by_movie_id = safe(make_query(sr.GET_SEARCHES_BY_MOVIE_ID))
+get_movies_with_no_imdb_id = safe(make_query(sr.GET_MOVIES_WITH_NO_IMDB_ID))
+get_movies_with_valid_searches = safe(make_query(sr.GET_MOVIES_WITH_VALID_SEARCHES))
+get_invalid_movies = safe(make_query(sr.GET_INVALID_MOVIES))
+get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
+
+###################################################################################################
+################################### Main Functions #################################################
+
+update_movie = safe(mdb.MovieDB.update_movie)
+remove_associated_searches = safe(mdb.MovieDB.remove_associated_searches)
+auto_match_movies = safe(mdb.MovieDB.auto_match_movies)
+create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
+create_project_tables = safe(mdb.MovieDB.create_project_tables)
+load_data_paths = safe(mdb.MovieDB.load_data_paths)
+#tmdb_search = safe(mdb.MovieDB.add_tmdb_movie_query_to_movie)
 get_stats = safe(Stats.from_db)
+
+

@@ -69,7 +69,8 @@ async def fix(movie_id):
             if form['local_action'] == 'remove_search':
                 bc.remove_associated_searches(movie_id)
                 return redirect(url_for('index'))
-        elif bc.attempt_movie_update_from_form(movie_id, form):
+        elif bc.update_movie_from_form(movie_id, form):
+            bc.remove_associated_searches(movie_id)
             await flash('Movie updated!')
             return redirect(url_for('fix', movie_id=bc.get_movies_with_valid_searches()[0]['id']))
         else:
@@ -84,7 +85,7 @@ async def search(movie_id):
         form = await request.form
         action = form['subject']
         if action == 'search':
-            bc.tmdb_search(movie_id)
+            bc.update_movie_with_api_call(movie_id)
             return redirect(url_for('invalid'))
     return await render_template('search.html', movie=bc.get_movie(movie_id)[0])
 

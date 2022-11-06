@@ -10,7 +10,7 @@ from . sql_transactions import readers as sqlr
 FILE_DIR = Path(__file__).parent
 SCHEMA_PATH = Path(__file__).parent/"moviedb_schema.sql"
 DB_PATH = Path(__file__).parent/"data/movies.db"
-BUILD_DATA_PATH_0 = Path(__file__).parent/"data/top_1000_part_1_responded"
+BUILD_DATA_PATH_0 = Path(__file__).parent/"data/top_1000_part_1_responded.json"
 DATA_PATHS = [BUILD_DATA_PATH_0]
 BACKUP_PATH = DB_PATH.parent/"backup.sql"
 
@@ -90,19 +90,34 @@ class MovieDB:
             raise SyntaxError("bad query string") from e
 
 
-    def update_movie_to_valid(self, movie_id, movie):
+    def update_movie(self, movie_id, movie):
         """ attempt to update movie in database with user data"""
         if self.conn is None:
             raise Exception("no connection to database")
         cur = self.conn.cursor()
         try:
             cur.execute("""UPDATE Movies SET title = ?, year = ?, imdb_id = ?, tmdb_id = ? WHERE id = ?""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id, movie_id))
-            cur.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
-            cur.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,))
+
+            if movie.imdb_response is not None:
+                print("imdb_reponse is not None")
+                cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "imdb", movie.imdb_response.total_results))
+                from_response_id = cur.lastrowid
+
+                for search in movie.imdb_response.results:
+                    cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, poster_path) VALUES (?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.poster_path))
+
+            if movie.tmdb_response is not None:
+                print("tmdb_reponse is not None")
+                cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "tmdb", movie.tmdb_response.total_results))
+                from_response_id = cur.lastrowid
+
+                for search in movie.tmdb_response.results:
+                    cur.execute("""INSERT INTO Searches (from_responses_id, title, year, release_date, original_title, original_language, tmdb_id, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.tmdb_id, search.poster_path))
             self.conn.commit()
             return True
         except Exception as e:
-            print(e)
+            print(e, "couldn't update movie")
             self.conn.rollback()
             return False
 
@@ -153,42 +168,12 @@ class MovieDB:
                 from_response_id = cur.lastrowid
 
                 for search in movie.tmdb_response.results:
-                    cur.execute("""INSERT INTO Searches (from_responses_id, title, year, tmdb_id,
-                                original_title, release_date, original_language, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                (from_response_id, search.title, search.year, search.tmdb_id,
-                                 search.original_title, search.release_date, search.original_language, search.poster_path))
+                    cur.execute("""INSERT INTO Searches (from_responses_id, title, year, release_date, original_title, original_language, tmdb_id, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.tmdb_id, search.poster_path))
             self.conn.commit()
         except Exception as e:
             print(e, f"error adding movie:{movie}")
             self.conn.rollback()
-
-
-
-
-    def add_tmdb_movie_query_to_movie(self, movie_id):
-        if self.conn is None:
-            raise Exception("no connection to database")
-        try:
-            movie = mi.Movie.from_query(self.query(sqlr.GET_MOVIE_BY_ID, movie_id)) #    getMovie(movie_id))
-            movie = tmdb_api.update_movie_with_api_call(movie)
-            # print("now I have stuff, ", movie.tmdb_response.total_results)
-        except Exception as e:
-            print(e)
-            return False
-        cur = self.conn.cursor()
-        try:
-            cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "tmdb", movie.tmdb_response.total_results))
-            from_response_id = cur.lastrowid
-
-            for search in movie.tmdb_response.results:
-                cur.execute("""INSERT INTO Searches (from_responses_id, title, year, release_date, original_title, original_language, tmdb_id, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.tmdb_id, search.poster_path))
-            self.conn.commit()
-            print("success")
-        except Exception as e:
-            print(e)
-            self.conn.rollback()
-            return False
 
 
     def auto_match_movies(self):
@@ -202,7 +187,8 @@ class MovieDB:
         for movie in movies:
             if (movie['imdb_id'] != '' or movie['tmdb_id'] != ''):
                 mi_movie = mi.Movie(movie['title'], movie['year'], movie['imdb_id'], movie['tmdb_id'])
-                self.update_movie_to_valid(movie['id'], mi_movie)
+                self.update_movie(movie['id'], mi_movie)
+                self.remove_associated_searches(movie['id'])
             else:
                 return False
         return True

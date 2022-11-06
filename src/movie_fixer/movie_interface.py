@@ -40,6 +40,17 @@ class Movie:
 
         return is_title and is_year and (is_imdb_id or is_tmdb_id)
 
+    def update_from_form(self, form):
+        """ update data from flask form"""
+        self.title = form['title']
+        self.year = form['year']
+        self.imdb_id = form['imdb_id']
+        self.tmdb_id = form['tmdb_id']
+
+    def update_from_api_call(self, api):
+        """add searches from get result"""
+        api.update(self)
+
     def __str__(self):
         return f"{self.title} ({self.year})"
 

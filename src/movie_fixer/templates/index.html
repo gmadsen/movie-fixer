@@ -6,7 +6,7 @@
     <hr>
     {% for movie in movies %}
         <a href="{{ url_for('movie', movie_id=movie['id']) }}">
-            <h2>{{ movie.title }} ({{ movie.year }}) {{ movie.imdb_id }} {{ movie.tmdb_id }}</h2>
+            <h2>{{ movie.title }} ({{ movie.year }})</h2>
         </a>
         <hr>
         {% endfor %}
