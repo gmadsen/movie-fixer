@@ -82,12 +82,26 @@ class MovieDB:
             raise Exception("no connection to database")
         self.conn.row_factory = sqlite3.Row
         cur = self.conn.cursor()
-
         try:
             cur.execute(sql_string, args)
             return cur.fetchall()
         except Exception as e:
             raise SyntaxError("bad query string") from e
+
+    def update(self, sql_string, *args):
+        ''' Generic update function that takes a sql string and a tuple of arguments '''
+        if self.conn is None:
+            raise Exception("no connection to database")
+        self.conn.row_factory = sqlite3.Row
+        cur = self.conn.cursor()
+        try:
+            cur.execute(sql_string, args)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            self.conn.rollback()
+            return False
+
 
 
     def update_movie(self, movie_id, movie):
@@ -97,7 +111,34 @@ class MovieDB:
         cur = self.conn.cursor()
         try:
             cur.execute("""UPDATE Movies SET title = ?, year = ?, imdb_id = ?, tmdb_id = ? WHERE id = ?""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id, movie_id))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(e, "couldn't update movie")
+            self.conn.rollback()
+            return False
 
+    def remove_associated_searches(self, movie_id):
+        """remove attached search requests in database given movie_id"""
+        if self.conn is None:
+            raise Exception("no connection to database")
+        cur = self.conn.cursor()
+        try:
+            cur.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
+            cur.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(e, f"could not remove searches from:{movie_id}")
+            self.conn.rollback()
+            return False
+
+    def add_searches(self, movie_id, movie):
+        """ add search results to movie"""
+        if self.conn is None:
+            raise Exception("no connection to database")
+        cur = self.conn.cursor()
+        try:
             if movie.imdb_response is not None:
                 print("imdb_reponse is not None")
                 cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "imdb", movie.imdb_response.total_results))
@@ -121,22 +162,6 @@ class MovieDB:
             self.conn.rollback()
             return False
 
-    def remove_associated_searches(self, movie_id):
-        """remove attached search requests in database given movie_id"""
-        if self.conn is None:
-            raise Exception("no connection to database")
-        cur = self.conn.cursor()
-        try:
-            cur.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
-            cur.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,))
-            self.conn.commit()
-            return True
-        except Exception as e:
-            print(e)
-            self.conn.rollback()
-            return False
-
-
     def add_movies(self, movies):
         """add a list of movies to database"""
         if self.conn is None:
@@ -145,10 +170,7 @@ class MovieDB:
             self.add_movie(movie)
 
     def add_movie(self, movie):
-        """
-        Movie is a Movie object from MovieInterface.py
-
-        """
+        """Movie is a Movie object from MovieInterface.py"""
         if self.conn is None:
             raise Exception("no connection to database")
         cur = self.conn.cursor()

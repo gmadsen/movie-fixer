@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from .sql_transactions import readers as sr
+from .sql_transactions import writers as sw
 from . import movie_db as mdb
 from . import movie_interface as mi
 from . import tmdb_api
@@ -46,15 +47,15 @@ def update_movie_from_form(movie_id, form):
     return True
 
 def update_movie_with_api_call(movie_id):
-    movie = mi.Movie.from_query(get_movie(movie_id))
-
-    print("before search: ", movie)
-    print("tmdb response: ", movie.tmdb_response)
-    movie = tmdb_api.update_movie_with_api_call(movie)
-    print("after search: ", movie)
-    print("tmdb response: ", movie.tmdb_response)
-    update_movie(movie_id, movie)
-    return True
+    """update movie record with a api get response"""
+    try:
+        movie = mi.Movie.from_query(get_movie(movie_id))
+        movie = tmdb_api.update_movie_with_api_call(movie)
+        add_searches(movie_id, movie)
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 def user_power_button_handler(action):
     """ handles all put requests from power buttons"""
@@ -72,6 +73,13 @@ def user_power_button_handler(action):
         hard_db_reset()
     else:
         print("go fuck yourself")
+
+
+def hard_db_reset():
+    """reset all tables, fill with normal data"""
+    create_project_tables()
+    load_data_paths()
+
 
 #######################################################################################
 ########################### Database Commands and Queries #############################
@@ -92,11 +100,20 @@ def make_query(sql_string):
         return dbase.query(sql_string, *args)
     return query_wrapper
 
+def make_update(sql_string):
+    """make an update of arbitary args from its sql command"""
+    def update_wrapper(dbase, *args):
+        return dbase.update(sql_string, *args)
+    return update_wrapper
 
-def hard_db_reset():
-    """reset all tables, fill with normal data"""
-    create_project_tables()
-    load_data_paths()
+
+# DB Updates
+def update_movie(movie_id, movie):
+    """update a movie record from movie interface object"""
+    func = safe(make_update(sw.UPDATE_MOVIE_BY_ID))
+    print("movie_id: ", movie_id)
+    print(movie.title, movie.year, movie.imdb_id, movie.tmdb_id)
+    return func(movie.title, movie.year, movie.imdb_id, movie.tmdb_id, movie_id)
 
 # DB queries
 get_movie = safe(make_query(sr.GET_MOVIE_BY_ID))
@@ -110,8 +127,9 @@ get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
 ###################################################################################################
 ################################### Main Functions #################################################
 
-update_movie = safe(mdb.MovieDB.update_movie)
+#update_movie = safe(mdb.MovieDB.update_movie)
 remove_associated_searches = safe(mdb.MovieDB.remove_associated_searches)
+add_searches = safe(mdb.MovieDB.add_searches)
 auto_match_movies = safe(mdb.MovieDB.auto_match_movies)
 create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
 create_project_tables = safe(mdb.MovieDB.create_project_tables)
