@@ -57,15 +57,6 @@ async def user_power_button_handler(action):
     else:
         print("go fuck yourself")
 
-async def clear_reviewable_searches_async():
-    """clear out all attached searches on reviewable movies, mostly to clear out crappy imdb"""
-    movies = get_movies_with_valid_searches()
-    dbase = mdb.MovieDB()
-    dbase.close()
-    await dbase.open_async_conn()
-    await asyncio.gather(*[dbase.remove_associated_searches_async(movie["id"]) for movie in movies])
-    await dbase.close_async_conn()
-
 
 def update_movie_from_form(movie_id, form):
     """ Update database with user defined info, will only be valid with an id"""
@@ -89,6 +80,16 @@ def update_movie_with_api_call(movie_id):
         return False
 
 
+async def clear_reviewable_searches_async():
+    """clear out all attached searches on reviewable movies, mostly to clear out crappy imdb"""
+    movies = get_movies_with_valid_searches()
+    dbase = mdb.MovieDB()
+    dbase.close()
+    await dbase.open_async_conn()
+    await asyncio.gather(*[dbase.remove_associated_searches_async(movie["id"]) for movie in movies])
+    await dbase.close_async_conn()
+
+
 async def auto_match_movies_async():
     """match existing searches with free movies if there is a 1-1 match"""
     dbase = mdb.MovieDB()
@@ -101,15 +102,12 @@ async def auto_match_movies_async():
 async def update_invalid_movies_async():
     """update a list of movies asynchronously"""
     movies_query = get_invalid_movies()
-    print("number of invalids")
-    print(len(movies_query))
     dbase = mdb.MovieDB()
     dbase.close()
 
     # all movies are get request called from coroutines and gathered
     tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
-    print("number of tasks: ", len(tasks))
-    results = await tmdb_api.batch_runner(20, tasks)
+    results = await tmdb_api.batch_runner(10, tasks)
 
     await dbase.open_async_conn()
     async def prepare_search_results_async(key, value):
@@ -135,7 +133,6 @@ async def hard_db_reset_async():
     await dbase.open_async_conn()
     await dbase.load_data_paths_async()
     await dbase.close_async_conn()
-
 
 #######################################################################################
 ########################### Database Commands and Queries #############################
@@ -188,4 +185,3 @@ create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
 create_project_tables = safe(mdb.MovieDB.create_project_tables)
 load_data_paths = safe(mdb.MovieDB.load_data_paths)
 get_stats = safe(Stats.from_db)
-
