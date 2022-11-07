@@ -51,11 +51,17 @@ def update_movie_with_api_call(movie_id):
     try:
         movie = mi.Movie.from_query(get_movie(movie_id))
         movie = tmdb_api.update_movie_with_api_call(movie)
-        add_searches(movie_id, movie)
+        add_search(movie_id, movie)
         return True
     except Exception as e:
         print(e)
         return False
+
+async def update_invalid_movies_async():
+    """update a list of movies asynchronously"""
+    movies_query = get_invalid_movies()
+    tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
+    return await tmdb_api.batch_runner(20, tasks[:5])
 
 def user_power_button_handler(action):
     """ handles all put requests from power buttons"""
@@ -111,8 +117,6 @@ def make_update(sql_string):
 def update_movie(movie_id, movie):
     """update a movie record from movie interface object"""
     func = safe(make_update(sw.UPDATE_MOVIE_BY_ID))
-    print("movie_id: ", movie_id)
-    print(movie.title, movie.year, movie.imdb_id, movie.tmdb_id)
     return func(movie.title, movie.year, movie.imdb_id, movie.tmdb_id, movie_id)
 
 # DB queries
@@ -129,7 +133,7 @@ get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
 
 #update_movie = safe(mdb.MovieDB.update_movie)
 remove_associated_searches = safe(mdb.MovieDB.remove_associated_searches)
-add_searches = safe(mdb.MovieDB.add_searches)
+add_search = safe(mdb.MovieDB.add_search)
 auto_match_movies = safe(mdb.MovieDB.auto_match_movies)
 create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
 create_project_tables = safe(mdb.MovieDB.create_project_tables)

@@ -1,5 +1,5 @@
 """module for tmdb api"""
-
+from dataclasses import dataclass
 import time
 from datetime import datetime
 import asyncio
@@ -51,7 +51,7 @@ def make_params_from_movie_query(movie):
             "query": movie['title'],
             "year": movie['year'],
             "language": "en-US",
-            "include_adult": True}
+            "include_adult": "true"}
 
 
 def make_params_from_movie(movie):
@@ -60,7 +60,7 @@ def make_params_from_movie(movie):
             "query": movie.title,
             "year": movie.year,
             "language": "en-US",
-            "include_adult": True}
+            "include_adult": "true"}
 
 
 def update_movie_with_api_call(movie):
@@ -81,23 +81,34 @@ async def gather_with_concurrency(count, *tasks):
     return await asyncio.gather(*(sem_task(task) for task in tasks))
 
 
-async def get_async(session, task, results):
+async def get_async(task, session, results) -> None:
     """ create an async get request job"""
-    async with session.get(url=task.url, params=task.params) as response:
+    # async with session.get(url=URL, params=task.params) as response:
+    async with session.get(URL, params=task.params) as response:
         obj = await response.json()
-        results[task.idx] = obj
+        results[task.movie_id] = TmdbResponse(obj)
 
+async def create_movie_query_tasks(movie_ids):
+       return 
 
-async def batch_runner(max_conc_workers, tasks):
+async def batch_runner(max_conc_workers, tasks) -> dict:
     """ given tasks and a worker count, will run a async worker queue"""
     conn = aiohttp.TCPConnector(limit=100, ttl_dns_cache=300)
     session = aiohttp.ClientSession(connector=conn)
-    results = {}
     now = time.time()
-    await gather_with_concurrency(max_conc_workers, *[get_async(session, task, results) for task in tasks])
+    results = {}
+    await gather_with_concurrency(max_conc_workers, *[get_async(task, session, results) for task in tasks])
     time_taken = time.time() - now
     print(time_taken)
     await session.close()
+    return results 
+
+
+@dataclass
+class Task:
+    def __init__(self, movie_id: int, params: dict):
+        self.movie_id = movie_id
+        self.params = params
 
 
 # asyncio.run(batch_search_runner())

@@ -133,7 +133,7 @@ class MovieDB:
             self.conn.rollback()
             return False
 
-    def add_searches(self, movie_id, movie):
+    def add_search(self, movie_id, movie):
         """ add search results to movie"""
         if self.conn is None:
             raise Exception("no connection to database")
