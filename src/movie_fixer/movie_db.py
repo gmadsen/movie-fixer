@@ -12,8 +12,13 @@ from . sql_transactions import readers as sqlr
 FILE_DIR = Path(__file__).parent
 SCHEMA_PATH = Path(__file__).parent/"moviedb_schema.sql"
 DB_PATH = Path(__file__).parent/"data/movies.db"
-BUILD_DATA_PATH_0 = Path(__file__).parent/"data/top_1000_part_1_responded.json"
-DATA_PATHS = [BUILD_DATA_PATH_0]
+BUILD_DATA_PATH_1 = Path(__file__).parent/"data/top_1000_part_1_responded.json"
+BUILD_DATA_PATH_2 = Path(__file__).parent/"data/top_1000_part_2_responded.json"
+BUILD_DATA_PATH_3 = Path(__file__).parent/"data/top_1000_part_3_responded.json"
+BUILD_DATA_PATH_4 = Path(__file__).parent/"data/top_1000_part_4_responded.json"
+BUILD_DATA_PATH_5 = Path(__file__).parent/"data/top_1000_part_5_responded.json"
+BUILD_DATA_PATH_6 = Path(__file__).parent/"data/top_1000_part_6_responded.json"
+DATA_PATHS = [BUILD_DATA_PATH_1, BUILD_DATA_PATH_2, BUILD_DATA_PATH_3, BUILD_DATA_PATH_4, BUILD_DATA_PATH_5, BUILD_DATA_PATH_6]
 BACKUP_PATH = DB_PATH.parent/"backup.sql"
 
 class MovieDB:
@@ -221,7 +226,7 @@ class MovieDB:
 
 ################################################################################
 ####################Async DB####################################################
-   
+
     async def auto_match_movies_async(self):
         ''' Query the database for all movies that do not have a valid imdb_id and tmdb_id, and if
             they have a search result that matches the title and year, then update the movie with
@@ -239,8 +244,8 @@ class MovieDB:
                 await self.remove_associated_searches_async(movie['id'])
 
         await asyncio.gather(*[validate_movie_async(movie) for movie in movies])
-   
-    
+
+
     async def update_movie_async(self, movie_id, movie):
         """attempt to update movie in database with user data, async version"""
         if self.conn is None:

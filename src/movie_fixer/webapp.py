@@ -24,7 +24,7 @@ async def download_file():
     """route to download csv file of movie list"""
     movies = bc.get_valid_movies()
     csvfile = exporter.make_temp_csv_movie_list(movies, exporter.Simkl)
-    return await send_file(csvfile.name, download_name='movies.csv', as_attachment=True, mimetype='text/csv')
+    return await send_file(csvfile.name, attachment_filename='movies.csv', as_attachment=True, mimetype='text/csv')
 
 
 @WEB_APP.route('/review')
@@ -67,7 +67,7 @@ async def fix(movie_id):
         if 'local_action' in form.keys():
             if form['local_action'] == 'remove_search':
                 bc.remove_associated_searches(movie_id)
-                return redirect(url_for('index'))
+                return redirect(url_for('fix', movie_id=bc.get_movies_with_valid_searches()[0]['id']))
         elif bc.update_movie_from_form(movie_id, form):
             bc.remove_associated_searches(movie_id)
             await flash('Movie updated!')

@@ -45,6 +45,11 @@ GET_MOVIES_WITH_CONFIDENT_MATCH = ("""
             AND Movies.year = Searches.year
                     """)
 
+GET_MOVIES_WITH_TMDB_ID_NO_IMDB_ID = ("""
+                           SELECT * FROM Movies
+                           WHERE tmdb_id != ''
+                           AND imdb_id = ''
+                           """)
 
 TOTAL_MOVIE_COUNT = """SELECT COUNT(*) FROM Movies;"""
 TOTAL_VALID_MOVIE_COUNT = """SELECT COUNT(*) FROM Movies WHERE imdb_id != '' OR tmdb_id != '';"""

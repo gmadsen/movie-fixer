@@ -34,18 +34,18 @@
 
     <div class="form-group">
         <button type="submit" class="btn btn-primary">Submit</button>
-    </div> 
+    </div>
 
     <div class="form-group">
         <button type="reset" class="btn btn-primary">Reset</button>
-    </div> 
+    </div>
 </form>
 
 <form method="post">
     <div class>
             <button type="submit" name="local_action" value="remove_search" class="btn btn-primary"
-                onclick="return confirm('Are you sure you want to remove all associated searches?')">Remove Associated Searches</button>
-    </div> 
+            >Remove Associated Searches</button>
+    </div>
 </form>
 <script>
     function fillform(value, idx) {
@@ -68,7 +68,7 @@
         {{ search.original_language if search.original_language is not none }}
     </h3>
     <img src={{ search.poster_path }} alt="No Poster available" width="104" height="142">
-       
+
     <hr>
 {% endfor %}
 

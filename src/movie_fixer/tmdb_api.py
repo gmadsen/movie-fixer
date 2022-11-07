@@ -7,6 +7,7 @@ import aiohttp
 import requests
 
 URL = "https://api.themoviedb.org/3/search/movie/"
+MOVIE_URL = "https://api.themoviedb.org/3/movie/"
 API_KEY = "4f8774170a53865294832e845594aee7"
 AUTH = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0Zjg3NzQxNzBhNTM4NjUyOTQ4MzJlODQ1NTk0YWVlNyIsInN1YiI6IjYyZTg3NjkxMWJmMjY2MDA1YTYxNTMwNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.J5fKMkgxJOZ40VqfA1tCnjfVDNcAYEGVIvXSRgfkqVU"
 POSTER_PREFIX = "https://image.tmdb.org/t/p/w92"
@@ -87,12 +88,10 @@ async def gather_with_concurrency(count, *tasks):
 async def get_async(task, session, results) -> None:
     """ create an async get request job"""
     # async with session.get(url=URL, params=task.params) as response:
-    async with session.get(URL, params=task.params) as response:
+    async with session.get(task.url, params=task.params) as response:
         obj = await response.json()
-        results[task.movie_id] = TmdbResponse(obj)
+        results[task.movie_id] = obj
 
-async def create_movie_query_tasks(movie_ids):
-       return
 
 async def batch_runner(max_conc_workers, tasks) -> dict:
     """ given tasks and a worker count, will run a async worker queue"""
@@ -106,9 +105,7 @@ async def batch_runner(max_conc_workers, tasks) -> dict:
 
 @dataclass
 class Task:
-    def __init__(self, movie_id: int, params: dict):
+    def __init__(self, movie_id: int, params: dict, url = URL):
         self.movie_id = movie_id
         self.params = params
-
-
-# asyncio.run(batch_search_runner())
+        self.url = url 

@@ -48,6 +48,8 @@ async def user_power_button_handler(action):
         await update_invalid_movies_async()
     elif action == 'clear_review':
         await clear_reviewable_searches_async()
+    elif action == 'find_imdb':
+        await update_movies_missing_imdb_with_tmdb_async()
     elif action == 'backup':
         create_transaction_backup()
     elif action == 'reset':
@@ -62,6 +64,7 @@ def update_movie_from_form(movie_id, form):
     """ Update database with user defined info, will only be valid with an id"""
     new_movie = mi.Movie.from_form(form)
     if not new_movie.is_fully_defined():
+        update_movie(movie_id, new_movie)
         return False
     update_movie(movie_id, new_movie)
     remove_associated_searches(movie_id)
@@ -99,6 +102,26 @@ async def auto_match_movies_async():
     await dbase.close_async_conn()
 
 
+async def update_movies_missing_imdb_with_tmdb_async():
+    """update a list of movies asynchronously"""
+    movies_query = get_movies_with_tmdb_id_no_imdb_id()
+    dbase = mdb.MovieDB()
+    dbase.close()
+
+    # all movies are get request called from coroutines and gathered
+    tasks = [tmdb_api.Task(movie['id'], params = {"api_key":tmdb_api.API_KEY}, url= tmdb_api.MOVIE_URL+movie['tmdb_id']) for movie in movies_query]
+    results = await tmdb_api.batch_runner(10, tasks)
+
+    await dbase.open_async_conn()
+    async def prepare_results_async(key, value):
+        query = await dbase.query_async(sr.GET_MOVIE_BY_ID, key)
+        movie = mi.Movie.from_query(query)
+        movie.imdb_id = value['imdb_id']
+        return movie
+    await asyncio.gather(*[dbase.update_movie_async(key, await prepare_results_async(key, value)) for key, value in results.items()])
+    await dbase.close_async_conn()
+
+
 async def update_invalid_movies_async():
     """update a list of movies asynchronously"""
     movies_query = get_invalid_movies()
@@ -113,7 +136,7 @@ async def update_invalid_movies_async():
     async def prepare_search_results_async(key, value):
         query = await dbase.query_async(sr.GET_MOVIE_BY_ID, key)
         movie = mi.Movie.from_query(query)
-        movie.tmdb_response = value
+        movie.tmdb_response = tmdb_api.TmdbResponse(value)
         return movie
     await asyncio.gather(*[dbase.add_search_async(key, await prepare_search_results_async(key, value)) for key, value in results.items()])
     await dbase.close_async_conn()
@@ -174,6 +197,7 @@ get_movies_with_no_imdb_id = safe(make_query(sr.GET_MOVIES_WITH_NO_IMDB_ID))
 get_movies_with_valid_searches = safe(make_query(sr.GET_MOVIES_WITH_VALID_SEARCHES))
 get_invalid_movies = safe(make_query(sr.GET_INVALID_MOVIES))
 get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
+get_movies_with_tmdb_id_no_imdb_id = safe(make_query(sr.GET_MOVIES_WITH_TMDB_ID_NO_IMDB_ID))
 
 ###################################################################################################
 ################################### Main Functions #################################################
