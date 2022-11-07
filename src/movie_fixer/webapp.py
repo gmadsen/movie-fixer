@@ -52,7 +52,7 @@ async def stats():
     if request.method == 'POST':
         form = await request.form
         try:
-            bc.user_power_button_handler(form['global_action'])
+            await bc.user_power_button_handler(form['global_action'])
         except Exception as e:
             print(e)
         finally:

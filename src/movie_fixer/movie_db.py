@@ -1,7 +1,8 @@
 """ Module of primary interface to movie database """
 from pathlib import Path
-import sqlite3
 import io
+import sqlite3
+import aiosqlite
 from . import movie_interface as mi
 from . import tmdb_api
 from . import imdb_api
@@ -72,7 +73,6 @@ class MovieDB:
 
 ###########################################################################
 
-
 ###########################################################################
 ##################### DB data  Functions ##################################
 
@@ -87,6 +87,7 @@ class MovieDB:
             return cur.fetchall()
         except Exception as e:
             raise SyntaxError("bad query string") from e
+
 
     def update(self, sql_string, *args):
         ''' Generic update function that takes a sql string and a tuple of arguments '''
@@ -162,6 +163,7 @@ class MovieDB:
             self.conn.rollback()
             return False
 
+
     def add_movies(self, movies):
         """add a list of movies to database"""
         if self.conn is None:
@@ -214,3 +216,64 @@ class MovieDB:
             else:
                 return False
         return True
+
+
+
+################################################################################
+####################Async DB####################################################
+
+
+    async def add_search_async(self, movie_id, movie):
+        """ add search results async *hopefully* """
+        if self.conn is None:
+            raise Exception("no connection to database")
+        try:
+            if  movie.imdb_response is not None:
+                print("imdb_reponse is not None")
+                cur = await self.conn.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "imdb", movie.imdb_response.total_results))
+                from_response_id = cur.lastrowid
+
+                for search in movie.imdb_response.results:
+                    cur = await self.conn.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, poster_path) VALUES (?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.poster_path))
+
+            if  movie.tmdb_response is not None:
+                cur = await self.conn.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "tmdb", movie.tmdb_response.total_results))
+                from_response_id = cur.lastrowid
+
+                for search in movie.tmdb_response.results:
+                    cur = await self.conn.execute("""INSERT INTO Searches (from_responses_id, title, year, release_date, original_title, original_language, tmdb_id, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.tmdb_id, search.poster_path))
+            await self.conn.commit()
+            return True
+        except Exception as e:
+            print(e, "couldn't update movie")
+            await self.conn.rollback()
+            return False
+
+    async def query_async(self, sql_string, *args):
+        ''' Generic query function that takes a sql string and a tuple of arguments '''
+        if self.conn is None:
+            raise Exception("no connection to database")
+        self.conn.row_factory = sqlite3.Row
+        try:
+            cur = await self.conn.execute(sql_string, args)
+            rows = await cur.fetchall()
+            return rows
+        except Exception as e:
+            print("sql_string: ", sql_string)
+            print("args: ", args)
+            print("error is: ", e)
+            raise SyntaxError("bad query string") from e
+
+    async def open_async_conn(self, database=DB_PATH):
+        """open async db connect"""
+        try:
+            self.conn = await aiosqlite.connect(database)
+        except Exception as e:
+            print(e)
+
+    async def close_async_conn(self):
+        """close async db connection"""
+        if self.conn is not None:
+            await self.conn.close()
+            self.conn = None

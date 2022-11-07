@@ -1,11 +1,13 @@
 """flask routing logic"""
 from dataclasses import dataclass
+import asyncio
 from pathlib import Path
 from .sql_transactions import readers as sr
 from .sql_transactions import writers as sw
 from . import movie_db as mdb
 from . import movie_interface as mi
 from . import tmdb_api
+
 
 ##################################################################################################
 ######################## Stats and Data Analysis Functions ########################################
@@ -57,19 +59,42 @@ def update_movie_with_api_call(movie_id):
         print(e)
         return False
 
+
+
+
+
+
+
+
 async def update_invalid_movies_async():
     """update a list of movies asynchronously"""
     movies_query = get_invalid_movies()
-    tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
-    return await tmdb_api.batch_runner(20, tasks[:5])
+    print("made it past first query")
+    dbase = mdb.MovieDB()
+    dbase.close()
 
-def user_power_button_handler(action):
+    tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
+    results = await tmdb_api.batch_runner(20, tasks[:5])
+    print(results)
+
+    await dbase.open_async_conn()
+    async def prepare_search_results_async(key, value):
+        query = await dbase.query_async(sr.GET_MOVIE_BY_ID, key)
+        movie = mi.Movie.from_query(query)
+        movie.tmdb_response = value
+        return movie
+    for key, value in results.items():
+        print(type(key), key)
+
+    await asyncio.gather(*[dbase.add_search_async(key, await prepare_search_results_async(key, value)) for key, value in results.items()])
+    await dbase.close_async_conn()
+
+async def user_power_button_handler(action):
     """ handles all put requests from power buttons"""
     if action == 'match':
         auto_match_movies()
-    elif action == 'query':
-        print("not implemented")
-        # query_all_invalids()
+    elif action == 'query_all':
+        await update_invalid_movies_async()
     elif action == 'export':
         print("not implemented")
         # export_all_valids()
@@ -140,5 +165,4 @@ create_project_tables = safe(mdb.MovieDB.create_project_tables)
 load_data_paths = safe(mdb.MovieDB.load_data_paths)
 #tmdb_search = safe(mdb.MovieDB.add_tmdb_movie_query_to_movie)
 get_stats = safe(Stats.from_db)
-
 
