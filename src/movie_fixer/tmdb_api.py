@@ -12,6 +12,7 @@ API_KEY = NEED TO ADD
 AUTH = NEED TO ADD  
 POSTER_PREFIX = "https://image.tmdb.org/t/p/w92"
 
+
 class TmdbResponse:
     """ takes a json get response from a movie query from tmdb """
     def __init__(self, response):
