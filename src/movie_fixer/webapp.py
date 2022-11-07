@@ -1,8 +1,7 @@
 """main file for movie database fixer web app"""
 
 from quart import Quart, render_template, request, url_for, flash, redirect, send_file
-from werkzeug.exceptions import abort
-from jinja2 import FileSystemLoader, Environment, select_autoescape, PackageLoader
+from jinja2 import FileSystemLoader
 
 from . import backend_caller as bc
 from . import exporter

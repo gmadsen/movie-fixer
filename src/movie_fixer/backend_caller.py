@@ -8,7 +8,6 @@ from . import movie_db as mdb
 from . import movie_interface as mi
 from . import tmdb_api
 
-
 ##################################################################################################
 ######################## Stats and Data Analysis Functions ########################################
 @dataclass
@@ -37,8 +36,37 @@ class Stats:
         stats.total_valid_movies = database.query(sr.TOTAL_VALID_MOVIE_COUNT)[0][0]
         return stats
 
-
 ############### routing logic ############################
+
+async def user_power_button_handler(action):
+    """ handles all put requests from power buttons"""
+    if action == 'match':
+        auto_match_movies()
+    elif action == 'match_async':
+        await auto_match_movies_async()
+    elif action == 'query_all':
+        await update_invalid_movies_async()
+    elif action == 'clear_review':
+        await clear_reviewable_searches_async()
+    elif action == 'backup':
+        create_transaction_backup()
+    elif action == 'reset':
+        hard_db_reset()
+    elif action == 'reset_async':
+        await hard_db_reset_async()
+    else:
+        print("go fuck yourself")
+
+async def clear_reviewable_searches_async():
+    """clear out all attached searches on reviewable movies, mostly to clear out crappy imdb"""
+    movies = get_movies_with_valid_searches()
+    dbase = mdb.MovieDB()
+    dbase.close()
+    await dbase.open_async_conn()
+    await asyncio.gather(*[dbase.remove_associated_searches_async(movie["id"]) for movie in movies])
+    await dbase.close_async_conn()
+
+
 def update_movie_from_form(movie_id, form):
     """ Update database with user defined info, will only be valid with an id"""
     new_movie = mi.Movie.from_form(form)
@@ -47,6 +75,7 @@ def update_movie_from_form(movie_id, form):
     update_movie(movie_id, new_movie)
     remove_associated_searches(movie_id)
     return True
+
 
 def update_movie_with_api_call(movie_id):
     """update movie record with a api get response"""
@@ -59,6 +88,7 @@ def update_movie_with_api_call(movie_id):
         print(e)
         return False
 
+
 async def auto_match_movies_async():
     """match existing searches with free movies if there is a 1-1 match"""
     dbase = mdb.MovieDB()
@@ -67,14 +97,18 @@ async def auto_match_movies_async():
     await dbase.auto_match_movies_async()
     await dbase.close_async_conn()
 
+
 async def update_invalid_movies_async():
     """update a list of movies asynchronously"""
     movies_query = get_invalid_movies()
+    print("number of invalids")
+    print(len(movies_query))
     dbase = mdb.MovieDB()
     dbase.close()
 
     # all movies are get request called from coroutines and gathered
     tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
+    print("number of tasks: ", len(tasks))
     results = await tmdb_api.batch_runner(20, tasks)
 
     await dbase.open_async_conn()
@@ -86,31 +120,12 @@ async def update_invalid_movies_async():
     await asyncio.gather(*[dbase.add_search_async(key, await prepare_search_results_async(key, value)) for key, value in results.items()])
     await dbase.close_async_conn()
 
-async def user_power_button_handler(action):
-    """ handles all put requests from power buttons"""
-    if action == 'match':
-        auto_match_movies()
-    elif action == 'match_async':
-        await auto_match_movies_async()
-    elif action == 'query_all':
-        await update_invalid_movies_async()
-    elif action == 'export':
-        print("not implemented")
-        # export_all_valids()
-    elif action == 'backup':
-        create_transaction_backup()
-    elif action == 'reset':
-        hard_db_reset()
-    elif action == 'reset_async':
-        await hard_db_reset_async()
-    else:
-        print("go fuck yourself")
-
 
 def hard_db_reset():
     """reset all tables, fill with normal data"""
     create_project_tables()
     load_data_paths()
+
 
 async def hard_db_reset_async():
     """reset all tables, fill with normal data, but async"""

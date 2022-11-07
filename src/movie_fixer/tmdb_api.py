@@ -32,7 +32,10 @@ class TmdbSearchResult:
         self.title = result["title"]
         self.original_title = result["original_title"]
         self.release_date = result["release_date"]
-        self.year = datetime.strptime(self.release_date, "%Y-%m-%d").year
+        if self.release_date != '':
+            self.year = datetime.strptime(self.release_date, "%Y-%m-%d").year
+        else:
+            self.year = self.release_date
         self.original_language = result["original_language"]
         self.tmdb_id = result["id"]
         self.poster_path = POSTER_PREFIX + \
@@ -89,19 +92,16 @@ async def get_async(task, session, results) -> None:
         results[task.movie_id] = TmdbResponse(obj)
 
 async def create_movie_query_tasks(movie_ids):
-       return 
+       return
 
 async def batch_runner(max_conc_workers, tasks) -> dict:
     """ given tasks and a worker count, will run a async worker queue"""
     conn = aiohttp.TCPConnector(limit=100, ttl_dns_cache=300)
     session = aiohttp.ClientSession(connector=conn)
-    now = time.time()
     results = {}
     await gather_with_concurrency(max_conc_workers, *[get_async(task, session, results) for task in tasks])
-    time_taken = time.time() - now
-    print(time_taken)
     await session.close()
-    return results 
+    return results
 
 
 @dataclass
