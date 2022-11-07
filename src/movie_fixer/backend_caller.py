@@ -63,19 +63,18 @@ def update_movie_with_api_call(movie_id):
 
 
 
-
+async def add_movies_async(movies):
+    return
 
 
 async def update_invalid_movies_async():
     """update a list of movies asynchronously"""
     movies_query = get_invalid_movies()
-    print("made it past first query")
     dbase = mdb.MovieDB()
     dbase.close()
 
     tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
-    results = await tmdb_api.batch_runner(20, tasks[:5])
-    print(results)
+    results = await tmdb_api.batch_runner(20, tasks)
 
     await dbase.open_async_conn()
     async def prepare_search_results_async(key, value):
@@ -83,9 +82,6 @@ async def update_invalid_movies_async():
         movie = mi.Movie.from_query(query)
         movie.tmdb_response = value
         return movie
-    for key, value in results.items():
-        print(type(key), key)
-
     await asyncio.gather(*[dbase.add_search_async(key, await prepare_search_results_async(key, value)) for key, value in results.items()])
     await dbase.close_async_conn()
 
@@ -102,6 +98,8 @@ async def user_power_button_handler(action):
         create_transaction_backup()
     elif action == 'reset':
         hard_db_reset()
+    elif action == 'reset_async':
+        await hard_db_reset_async()
     else:
         print("go fuck yourself")
 
@@ -110,6 +108,15 @@ def hard_db_reset():
     """reset all tables, fill with normal data"""
     create_project_tables()
     load_data_paths()
+
+async def hard_db_reset_async():
+    """reset all tables, fill with normal data, but async"""
+    create_project_tables()
+    dbase = mdb.MovieDB()
+    dbase.close()
+    await dbase.open_async_conn()
+    await dbase.load_data_paths_async()
+    await dbase.close_async_conn()
 
 
 #######################################################################################
@@ -163,6 +170,5 @@ auto_match_movies = safe(mdb.MovieDB.auto_match_movies)
 create_transaction_backup = safe(mdb.MovieDB.create_transaction_backup)
 create_project_tables = safe(mdb.MovieDB.create_project_tables)
 load_data_paths = safe(mdb.MovieDB.load_data_paths)
-#tmdb_search = safe(mdb.MovieDB.add_tmdb_movie_query_to_movie)
 get_stats = safe(Stats.from_db)
 

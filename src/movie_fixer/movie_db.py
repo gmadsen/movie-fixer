@@ -2,6 +2,7 @@
 from pathlib import Path
 import io
 import sqlite3
+import asyncio
 import aiosqlite
 from . import movie_interface as mi
 from . import tmdb_api
@@ -223,13 +224,45 @@ class MovieDB:
 ####################Async DB####################################################
 
 
+    async def add_movies_async(self, movies):
+        """add a list of movies to database"""
+        if self.conn is None:
+            raise Exception("no connection to database")
+        await asyncio.gather(*[self.add_movie_async(movie) for movie in movies])
+
+    async def add_movie_async(self, movie):
+        """Movie is a Movie object from MovieInterface.py"""
+        if self.conn is None:
+            raise Exception("no connection to database")
+        try:
+            cur = await self.conn.execute("""INSERT INTO Movies (title, year, imdb_id, tmdb_id) VALUES (?, ?, ?, ?)""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id))
+            from_movie_id = cur.lastrowid
+
+            if movie.imdb_response is not None:
+                cur = await self.conn.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (from_movie_id, "imdb", movie.imdb_response.total_results))
+                from_response_id = cur.lastrowid
+
+                for search in movie.imdb_response.results:
+                    await cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, poster_path) VALUES (?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.poster_path))
+
+            if movie.tmdb_response is not None:
+                cur = await self.conn.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (from_movie_id, "tmdb", movie.tmdb_response.total_results))
+                from_response_id = cur.lastrowid
+
+                for search in movie.tmdb_response.results:
+                    await self.conn.execute("""INSERT INTO Searches (from_responses_id, title, year, release_date, original_title, original_language, tmdb_id, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (from_response_id, search.title, search.year, search.release_date, search.original_title, search.original_language, search.tmdb_id, search.poster_path))
+            await self.conn.commit()
+        except Exception as e:
+            print(e, f"error adding movie:{movie}")
+            await self.conn.rollback()
+
     async def add_search_async(self, movie_id, movie):
         """ add search results async *hopefully* """
         if self.conn is None:
             raise Exception("no connection to database")
         try:
             if  movie.imdb_response is not None:
-                print("imdb_reponse is not None")
                 cur = await self.conn.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "imdb", movie.imdb_response.total_results))
                 from_response_id = cur.lastrowid
 
@@ -277,3 +310,17 @@ class MovieDB:
         if self.conn is not None:
             await self.conn.close()
             self.conn = None
+
+    async def load_data_paths_async(self, data_paths=DATA_PATHS):
+        """load data async """
+        try:
+            movies = []
+            for dpath in data_paths:
+                movies.extend(imdb_api.convert_aggregate_imdb_response_file_to_movies(dpath))
+            await self.add_movies_async(movies)
+
+                # self.add_movies_async(imdb_api.convert_aggregate_imdb_response_file_to_movies(dpath)
+            await self.conn.commit()
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
