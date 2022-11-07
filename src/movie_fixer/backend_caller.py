@@ -59,13 +59,13 @@ def update_movie_with_api_call(movie_id):
         print(e)
         return False
 
-
-
-
-
-async def add_movies_async(movies):
-    return
-
+async def auto_match_movies_async():
+    """match existing searches with free movies if there is a 1-1 match"""
+    dbase = mdb.MovieDB()
+    dbase.close()
+    await dbase.open_async_conn()
+    await dbase.auto_match_movies_async()
+    await dbase.close_async_conn()
 
 async def update_invalid_movies_async():
     """update a list of movies asynchronously"""
@@ -73,6 +73,7 @@ async def update_invalid_movies_async():
     dbase = mdb.MovieDB()
     dbase.close()
 
+    # all movies are get request called from coroutines and gathered
     tasks = [tmdb_api.Task(movie['id'], tmdb_api.make_params_from_movie_query(movie)) for movie in movies_query]
     results = await tmdb_api.batch_runner(20, tasks)
 
@@ -89,6 +90,8 @@ async def user_power_button_handler(action):
     """ handles all put requests from power buttons"""
     if action == 'match':
         auto_match_movies()
+    elif action == 'match_async':
+        await auto_match_movies_async()
     elif action == 'query_all':
         await update_invalid_movies_async()
     elif action == 'export':
@@ -163,7 +166,6 @@ get_valid_movies = safe(make_query(sr.GET_VALID_MOVIES))
 ###################################################################################################
 ################################### Main Functions #################################################
 
-#update_movie = safe(mdb.MovieDB.update_movie)
 remove_associated_searches = safe(mdb.MovieDB.remove_associated_searches)
 add_search = safe(mdb.MovieDB.add_search)
 auto_match_movies = safe(mdb.MovieDB.auto_match_movies)

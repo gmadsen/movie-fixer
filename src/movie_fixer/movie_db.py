@@ -102,6 +102,7 @@ class MovieDB:
             return True
         except Exception as e:
             self.conn.rollback()
+            print(e)
             return False
 
 
@@ -142,7 +143,6 @@ class MovieDB:
         cur = self.conn.cursor()
         try:
             if movie.imdb_response is not None:
-                print("imdb_reponse is not None")
                 cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "imdb", movie.imdb_response.total_results))
                 from_response_id = cur.lastrowid
 
@@ -150,7 +150,6 @@ class MovieDB:
                     cur.execute("""INSERT INTO Searches (from_responses_id, title, year, imdb_id, poster_path) VALUES (?, ?, ?, ?, ?)""", (from_response_id, search.title, search.year, search.imdb_id, search.poster_path))
 
             if movie.tmdb_response is not None:
-                print("tmdb_reponse is not None")
                 cur.execute("""INSERT INTO Responses (from_movies_id, source, total_results) VALUES (?, ?, ?)""", (movie_id, "tmdb", movie.tmdb_response.total_results))
                 from_response_id = cur.lastrowid
 
@@ -222,7 +221,52 @@ class MovieDB:
 
 ################################################################################
 ####################Async DB####################################################
+   
+    async def auto_match_movies_async(self):
+        ''' Query the database for all movies that do not have a valid imdb_id and tmdb_id, and if
+            they have a search result that matches the title and year, then update the movie with
+            the search result and throw away the other search results.
+            Async version
+        '''
+        if self.conn is None:
+            raise Exception("no connection to database")
+        movies = await self.query_async(sqlr.GET_MOVIES_WITH_CONFIDENT_MATCH)
 
+        async def validate_movie_async(movie):
+            if (movie['imdb_id'] != '' or movie['tmdb_id'] != ''):
+                mi_movie = mi.Movie(movie['title'], movie['year'], movie['imdb_id'], movie['tmdb_id'])
+                await self.update_movie_async(movie['id'], mi_movie)
+                await self.remove_associated_searches_async(movie['id'])
+
+        await asyncio.gather(*[validate_movie_async(movie) for movie in movies])
+   
+    
+    async def update_movie_async(self, movie_id, movie):
+        """attempt to update movie in database with user data, async version"""
+        if self.conn is None:
+            raise Exception("no connection to database")
+        try:
+            await self.conn.execute("""UPDATE Movies SET title = ?, year = ?, imdb_id = ?, tmdb_id = ? WHERE id = ?""", (movie.title, movie.year, movie.imdb_id, movie.tmdb_id, movie_id))
+            await self.conn.commit()
+            return True
+        except Exception as e:
+            print(e, f"error updating movie:{movie}")
+            await self.conn.rollback()
+            return False
+
+    async def remove_associated_searches_async(self, movie_id):
+        """remove attached search requests in database given movie_id, with async"""
+        if self.conn is None:
+            raise Exception("no connection to database")
+        try:
+            await self.conn.execute("""DELETE FROM Searches WHERE from_responses_id IN (SELECT id FROM Responses WHERE from_movies_id = ?)""", (movie_id,))
+            await self.conn.execute("""DELETE FROM Responses WHERE from_movies_id = ?""", (movie_id,))
+            await self.conn.commit()
+            return True
+        except Exception as e:
+            print(e, f"could not remove searches from:{movie_id}")
+            await self.conn.rollback()
+            return False
 
     async def add_movies_async(self, movies):
         """add a list of movies to database"""
