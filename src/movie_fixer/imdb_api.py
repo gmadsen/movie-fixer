@@ -7,7 +7,7 @@ from .movie_interface import Movie
 
 URL = "https://movie-database-alternative.p.rapidapi.com/"
 HEADERS = {
-    "X-RapidAPI-Key": "2afd199a52msh50040cd85d8d844p17f065jsnc8fd0db39230",
+    "X-RapidAPI-Key":  NEED TO ADD
     "X-RapidAPI-Host": "movie-database-alternative.p.rapidapi.com"
 }
 

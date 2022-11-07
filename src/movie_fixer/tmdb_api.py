@@ -8,8 +8,8 @@ import requests
 
 URL = "https://api.themoviedb.org/3/search/movie/"
 MOVIE_URL = "https://api.themoviedb.org/3/movie/"
-API_KEY = "4f8774170a53865294832e845594aee7"
-AUTH = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0Zjg3NzQxNzBhNTM4NjUyOTQ4MzJlODQ1NTk0YWVlNyIsInN1YiI6IjYyZTg3NjkxMWJmMjY2MDA1YTYxNTMwNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.J5fKMkgxJOZ40VqfA1tCnjfVDNcAYEGVIvXSRgfkqVU"
+API_KEY = NEED TO ADD 
+AUTH = NEED TO ADD  
 POSTER_PREFIX = "https://image.tmdb.org/t/p/w92"
 
 class TmdbResponse:
