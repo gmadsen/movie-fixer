@@ -8,8 +8,8 @@ import requests
 
 URL = "https://api.themoviedb.org/3/search/movie/"
 MOVIE_URL = "https://api.themoviedb.org/3/movie/"
-API_KEY = NEED TO ADD 
-AUTH = NEED TO ADD  
+API_KEY = "NEED TO ADD env variable secure method"
+AUTH = "env variable secure method"
 POSTER_PREFIX = "https://image.tmdb.org/t/p/w92"
 
 
@@ -109,4 +109,4 @@ class Task:
     def __init__(self, movie_id: int, params: dict, url = URL):
         self.movie_id = movie_id
         self.params = params
-        self.url = url 
+        self.url = url

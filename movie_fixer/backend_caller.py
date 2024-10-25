@@ -1,7 +1,6 @@
 """flask routing logic"""
 from dataclasses import dataclass
 import asyncio
-from pathlib import Path
 from .sql_transactions import readers as sr
 from .sql_transactions import writers as sw
 from . import movie_db as mdb
@@ -109,7 +108,8 @@ async def update_movies_missing_imdb_with_tmdb_async():
     dbase.close()
 
     # all movies are get request called from coroutines and gathered
-    tasks = [tmdb_api.Task(movie['id'], params = {"api_key":tmdb_api.API_KEY}, url= tmdb_api.MOVIE_URL+movie['tmdb_id']) for movie in movies_query]
+    tasks = [
+        tmdb_api.Task(movie['id'], params = {"api_key": tmdb_api.API_KEY}, url=tmdb_api.MOVIE_URL + movie['tmdb_id']) for movie in movies_query]
     results = await tmdb_api.batch_runner(10, tasks)
 
     await dbase.open_async_conn()

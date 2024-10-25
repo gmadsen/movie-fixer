@@ -5,7 +5,6 @@ import sqlite3
 import asyncio
 import aiosqlite
 from . import movie_interface as mi
-from . import tmdb_api
 from . import imdb_api
 from . sql_transactions import readers as sqlr
 
@@ -71,7 +70,7 @@ class MovieDB:
         try:
             for dpath in data_paths:
                 self.add_movies(imdb_api.convert_aggregate_imdb_response_file_to_movies(dpath)
-            )
+                                )
             self.conn.commit()
         except Exception as e:
             print(e)

@@ -14,3 +14,6 @@ Movie library metadata fixer
 - [x] implement thread pool/asyncio for tmdb searches!
 - [x] refactor data access
 - [x] app is now async and on quart!
+
+- [] dockerize
+- [] figure out best practices for env vars
